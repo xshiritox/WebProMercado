@@ -17,6 +17,15 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string, fullName: string) => {
     loading.value = true
     try {
+      // Primero verificamos si el usuario ya existe
+      const { data: existingUser } = await supabase.auth.admin.getUserById(email)
+      
+      if (existingUser) {
+        toast.warning('Ya existe una cuenta con este correo electrónico. Por favor inicia sesión.')
+        return { data: null, error: { message: 'El usuario ya existe' } }
+      }
+
+      // Si no existe, procedemos con el registro
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -30,7 +39,19 @@ export const useAuth = () => {
       if (error) throw error
 
       if (data.user) {
-        // Create profile
+        // Verificamos si el perfil ya existe
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .single()
+
+        if (existingProfile) {
+          toast.warning('Ya existe un perfil con este correo electrónico. Por favor inicia sesión.')
+          return { data: null, error: { message: 'El perfil ya existe' } }
+        }
+
+        // Si no existe, creamos el perfil
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
