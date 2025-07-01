@@ -379,57 +379,83 @@ const removeImage = (index: number) => {
 const handleSubmit = async () => {
   console.log('Iniciando envío del formulario...')
   
-  if (!isFormValid.value) {
-    console.error('Formulario no válido')
-    return
-  }
-  
-  if (!profile.value) {
-    console.error('No hay usuario autenticado')
-    toast.error('Debes iniciar sesión para publicar un producto')
-    return
-  }
-  
-  if (form.images.length === 0) {
-    if (!confirm('¿Estás seguro de publicar el producto sin imágenes?')) {
+  try {
+    // Validaciones iniciales
+    if (!isFormValid.value) {
+      console.error('Formulario no válido')
+      toast.error('Por favor completa todos los campos requeridos')
       return
     }
-  }
+    
+    if (!profile.value) {
+      console.error('No hay usuario autenticado')
+      toast.error('Debes iniciar sesión para publicar un producto')
+      return
+    }
+    
+    if (form.images.length === 0) {
+      const confirmPublish = await new Promise(resolve => {
+        // Usar confirm nativo para mejor compatibilidad en móviles
+        if (window.confirm('¿Estás seguro de publicar el producto sin imágenes?')) {
+          resolve(true)
+        } else {
+          resolve(false)
+        }
+      })
+      
+      if (!confirmPublish) {
+        return
+      }
+    }
 
-  try {
     console.log('Iniciando carga de imágenes...')
     loading.value = true
     
+    // Mostrar feedback al usuario
+    toast.info('Subiendo imágenes, por favor espera...')
+    
     // Subir imágenes primero
     const imageUrls = []
-    for (const file of form.images) {
+    for (const [index, file] of form.images.entries()) {
       try {
-        console.log('Procesando imagen:', file.name)
-        const fileExt = file.name.split('.').pop()
+        console.log(`Procesando imagen ${index + 1}/${form.images.length}:`, file.name)
+        
+        // Comprimir imagen solo si es necesario (para móviles)
+        let fileToUpload = file
+        if (file.size > 1000000) { // Si la imagen es mayor a 1MB
+          try {
+            fileToUpload = await compressImage(file)
+            console.log('Imagen comprimida:', fileToUpload.size, 'bytes')
+          } catch (compressionError) {
+            console.warn('No se pudo comprimir la imagen, subiendo original', compressionError)
+          }
+        }
+        
+        const fileExt = fileToUpload.name.split('.').pop()
         const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
         const filePath = `products/${fileName}`
         
         console.log('Subiendo a Supabase Storage...')
-        const { error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('product-images')
-          .upload(filePath, file, {
+          .upload(filePath, fileToUpload, {
             cacheControl: '3600',
             upsert: false
           })
         
         if (uploadError) {
+          console.error('Error en upload:', uploadError)
           if (uploadError.message.includes('Bucket not found')) {
-            console.error('Error: El bucket no existe. Por favor crea un bucket llamado "product-images" en Supabase Storage.')
-            toast.error('Error de configuración: El almacenamiento de imágenes no está configurado correctamente.')
+            toast.error('Error de configuración: El almacenamiento no está configurado correctamente')
+          } else if (uploadError.message.includes('The resource already exists')) {
+            toast.error('Ya existe un archivo con ese nombre. Por favor, renombra la imagen.')
           } else {
-            console.error('Error de Supabase Storage:', uploadError)
             toast.error(`Error al subir la imagen: ${uploadError.message}`)
           }
           throw uploadError
         }
         
-        // Obtener URL pública
-        console.log('Obteniendo URL pública...')
+        console.log('Upload exitoso, obteniendo URL pública...')
         const { data: { publicUrl } } = supabase.storage
           .from('product-images')
           .getPublicUrl(filePath)
@@ -437,32 +463,36 @@ const handleSubmit = async () => {
         if (!publicUrl) {
           console.error('No se pudo obtener la URL pública de la imagen')
           toast.error('Error al obtener la URL de la imagen')
-          return
+          continue // Continuar con la siguiente imagen en lugar de detener todo
         }
         
         console.log('Imagen subida correctamente:', publicUrl)
         imageUrls.push(publicUrl)
+        
+        // Actualizar progreso
+        const progress = Math.round(((index + 1) / form.images.length) * 100)
+        toast.info(`Subiendo imágenes... ${progress}%`)
+        
       } catch (error) {
-        console.error('Error subiendo imagen:', error)
-        toast.error('Error al subir una o más imágenes')
-        loading.value = false
-        return
+        console.error(`Error procesando imagen ${index + 1}:`, error)
+        // Continuar con las demás imágenes en lugar de detener todo
+        continue
       }
     }
 
     console.log('Preparando datos del producto...')
     const productData = {
-      title: form.title,
-      description: form.description,
-      price: form.price!,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      price: Number(form.price),
       category: form.category,
       condition: form.condition as 'nuevo' | 'usado' | 'reacondicionado',
       location: form.location,
       user_id: profile.value.id,
       featured: form.featured,
       images: imageUrls,
-      contact_name: form.contact_name,
-      contact_phone: form.contact_phone
+      contact_name: form.contact_name.trim(),
+      contact_phone: form.contact_phone.trim()
     }
 
     console.log('Creando producto...', productData)
@@ -480,7 +510,7 @@ const handleSubmit = async () => {
     }
   } catch (error) {
     console.error('Error en handleSubmit:', error)
-    toast.error('Error al publicar el producto. Por favor, inténtalo de nuevo.')
+    toast.error('Error al publicar el producto. Por favor, verifica tu conexión e inténtalo de nuevo.')
   } finally {
     console.log('Finalizando proceso de envío...')
     loading.value = false
