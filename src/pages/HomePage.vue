@@ -155,7 +155,7 @@
               <Users class="w-8 h-8 text-accent-600" />
             </div>
             <h3 class="text-xl font-semibold text-gray-900 mb-2">Comunidad Activa</h3>
-            <p class="text-gray-600">Más de 100,000 usuarios activos en toda Colombia</p>
+            <p class="text-gray-600">Usuarios activos en toda Colombia</p>
           </div>
         </div>
       </div>
