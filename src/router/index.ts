@@ -7,7 +7,9 @@ import ProductsPage from '../pages/ProductsPage.vue'
 import ProductDetailPage from '../pages/ProductDetailPage.vue'
 import PostProductPage from '../pages/PostProductPage.vue'
 import PropertiesPage from '../pages/PropertiesPage.vue'
+import PostPropertyPage from '../pages/PostPropertyPage.vue'
 import ServicesPage from '../pages/ServicesPage.vue'
+import PostServicePage from '../pages/PostServicePage.vue'
 import AdminPage from '../pages/AdminPage.vue'
 import NotFoundPage from '../pages/NotFoundPage.vue'
 
@@ -55,9 +57,21 @@ export const routes: RouteRecordRaw[] = [
     component: PropertiesPage
   },
   {
+    path: '/post-property',
+    name: 'post-property',
+    component: PostPropertyPage,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/services',
     name: 'services',
     component: ServicesPage
+  },
+  {
+    path: '/post-service',
+    name: 'post-service',
+    component: PostServicePage,
+    meta: { requiresAuth: true }
   },
   {
     path: '/admin',
