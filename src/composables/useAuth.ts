@@ -199,14 +199,37 @@ export const useAuth = () => {
   const signOut = async () => {
     loading.value = true
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-
+      // Limpiar manualmente los datos de autenticación
       user.value = null
       profile.value = null
+      
+      // Forzar limpieza de la sesión
+      await supabase.auth.signOut()
+      
+      // Limpiar cualquier dato de sesión persistente
+      if (typeof window !== 'undefined') {
+        // Limpiar localStorage y sessionStorage
+        localStorage.removeItem('sb-auth-token')
+        sessionStorage.removeItem('sb-auth-token')
+        
+        // Forzar recarga en dispositivos móviles para limpiar el estado
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+          window.location.href = '/'
+          return
+        }
+      }
+      
       toast.success('Sesión cerrada exitosamente')
     } catch (error: any) {
-      toast.error(error.message || 'Error al cerrar sesión')
+      console.error('Error en signOut:', error)
+      // Si hay un error, forzar la limpieza de todos modos
+      user.value = null
+      profile.value = null
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sb-auth-token')
+        sessionStorage.removeItem('sb-auth-token')
+        window.location.href = '/'
+      }
     } finally {
       loading.value = false
     }
