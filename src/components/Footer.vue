@@ -12,22 +12,11 @@
           </div>
           <p class="text-gray-300 mb-4">
             La plataforma líder para comprar y vender productos, propiedades y servicios. 
-            Conectamos a compradores y vendedores.
+            Conectamos a compradores y vendedores en toda Colombia.
           </p>
-          <div class="flex space-x-4">
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-              <Facebook class="w-5 h-5" />
-            </a>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-              <Twitter class="w-5 h-5" />
-            </a>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-              <Instagram class="w-5 h-5" />
-            </a>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-              <Linkedin class="w-5 h-5" />
-            </a>
-          </div>
+          <p class="text-gray-400 text-sm">
+            © {{ currentYear }} PubliNet. Todos los derechos reservados.
+          </p>
         </div>
 
         <!-- Quick Links -->
@@ -62,33 +51,37 @@
           <h3 class="text-lg font-semibold mb-4">Soporte</h3>
           <ul class="space-y-2">
             <li>
-              <a href="#" class="text-gray-300 hover:text-white transition-colors">
+              <router-link to="/help" class="text-gray-300 hover:text-white transition-colors">
                 Centro de Ayuda
-              </a>
+              </router-link>
             </li>
             <li>
-              <a href="#" class="text-gray-300 hover:text-white transition-colors">
+              <router-link to="/terms" class="text-gray-300 hover:text-white transition-colors">
                 Términos de Uso
-              </a>
+              </router-link>
             </li>
             <li>
-              <a href="#" class="text-gray-300 hover:text-white transition-colors">
+              <router-link to="/privacy" class="text-gray-300 hover:text-white transition-colors">
                 Política de Privacidad
-              </a>
+              </router-link>
             </li>
             <li>
-              <a href="#" class="text-gray-300 hover:text-white transition-colors">
+              <router-link to="/contact" class="text-gray-300 hover:text-white transition-colors">
                 Contacto
-              </a>
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/faq" class="text-gray-300 hover:text-white transition-colors">
+                Preguntas Frecuentes
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/safety" class="text-gray-300 hover:text-white transition-colors">
+                Consejos de Seguridad
+              </router-link>
             </li>
           </ul>
         </div>
-      </div>
-
-      <div class="border-t border-gray-800 mt-8 pt-8 text-center">
-        <p class="text-gray-400">
-          © {{ currentYear }} PubliNet. Todos los derechos reservados.
-        </p>
       </div>
     </div>
   </footer>
@@ -96,7 +89,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ShoppingBag, Facebook, Twitter, Instagram, Linkedin } from 'lucide-vue-next'
+import { ShoppingBag } from 'lucide-vue-next'
 
 const currentYear = computed(() => new Date().getFullYear())
 </script>
