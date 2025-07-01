@@ -197,7 +197,7 @@
             Administración
           </router-link>
           <button
-            @click="handleSignOut; showMobileMenu = false"
+            @click="handleSignOut"
             class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600"
           >
             Cerrar Sesión
@@ -227,11 +227,34 @@ const handleSearch = () => {
   }
 }
 
-const handleSignOut = async () => {
-  await signOut()
-  showUserMenu.value = false
-  showMobileMenu.value = false
-  router.push('/')
+const handleSignOut = async (e?: Event) => {
+  e?.preventDefault()
+  e?.stopPropagation()
+  
+  try {
+    // Cerrar menús antes de redirigir
+    showUserMenu.value = false
+    showMobileMenu.value = false
+    
+    // Esperar un momento para que los menús se cierren visualmente
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // Cerrar sesión
+    await signOut()
+    
+    // Redirigir a la página de inicio
+    if (window.location.pathname !== '/') {
+      router.push('/')
+      // Forzar recarga en móviles para limpiar el estado
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        window.location.href = '/'
+      }
+    }
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error)
+    // Forzar recarga en caso de error
+    window.location.href = '/'
+  }
 }
 
 // Close menus when clicking outside
