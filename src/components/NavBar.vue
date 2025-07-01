@@ -197,7 +197,7 @@
             Administración
           </router-link>
           <button
-            @click="handleSignOut"
+            @click="handleSignOut; showMobileMenu = false"
             class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600"
           >
             Cerrar Sesión
