@@ -17,58 +17,106 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string, fullName: string) => {
     loading.value = true
     try {
-      // Primero verificamos si el usuario ya existe
-      const { data: existingUser } = await supabase.auth.admin.getUserById(email)
-      
-      if (existingUser) {
-        toast.warning('Ya existe una cuenta con este correo electrónico. Por favor inicia sesión.')
-        return { data: null, error: { message: 'El usuario ya existe' } }
+      // Validar los datos de entrada
+      if (!email || !password || !fullName) {
+        throw new Error('Por favor completa todos los campos')
       }
 
-      // Si no existe, procedemos con el registro
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+      const trimmedEmail = email.trim()
+      const trimmedPassword = password.trim()
+      const trimmedFullName = fullName.trim()
+
+      // Validar formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(trimmedEmail)) {
+        throw new Error('Por favor ingresa un correo electrónico válido')
+      }
+
+      // Validar longitud de la contraseña
+      if (trimmedPassword.length < 6) {
+        throw new Error('La contraseña debe tener al menos 6 caracteres')
+      }
+
+      // Verificar si el correo ya está en uso
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id, email, verified')
+        .eq('email', trimmedEmail)
+        .maybeSingle()
+
+      if (existingProfile) {
+        // Verificar si el usuario existe en auth.users
+        await supabase.auth.signInWithPassword({
+          email: trimmedEmail,
+          password: 'temporary_wrong_password' // Contraseña incorrecta a propósito
+        }).catch((error) => {
+          // Si el error es de credenciales inválidas, el usuario existe pero la contraseña es incorrecta
+          if (error.message.includes('Invalid login credentials')) {
+            throw new Error('Ya existe una cuenta con este correo electrónico. Por favor inicia sesión.')
+          }
+          // Otro tipo de error, lo propagamos
+          throw error
+        })
+      }
+
+      // Registrar el usuario en Supabase Auth
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password: trimmedPassword,
         options: {
           data: {
-            full_name: fullName
-          }
+            full_name: trimmedFullName
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
 
-      if (error) throw error
+      // Si hay un error de usuario ya registrado, intentamos limpiar
+      if (signUpError?.message?.includes('already registered')) {
+        const cleaned = await checkAndCleanOrphanedUser(trimmedEmail)
+        if (cleaned) {
+          // Si se limpió correctamente, intentamos registrar de nuevo
+          return signUp(trimmedEmail, trimmedPassword, trimmedFullName)
+        }
+        throw new Error('El correo electrónico ya está en uso. Por favor, inicia sesión o utiliza otro correo.')
+      } else if (signUpError) {
+        // Otro tipo de error
+        throw signUpError
+      }
 
+      // Si el registro fue exitoso, crear el perfil
       if (data.user) {
-        // Verificamos si el perfil ya existe
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', email)
-          .single()
-
-        if (existingProfile) {
-          toast.warning('Ya existe un perfil con este correo electrónico. Por favor inicia sesión.')
-          return { data: null, error: { message: 'El perfil ya existe' } }
+        const profileData = {
+          id: data.user.id,
+          email: data.user.email,
+          full_name: trimmedFullName,
+          badge: 'colaborador',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          verified: false
         }
 
-        // Si no existe, creamos el perfil
+        // Usar upsert en lugar de insert para evitar errores de duplicados
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: data.user.email!,
-            full_name: fullName,
-            badge: 'colaborador'
-          })
+          .upsert(profileData, { onConflict: 'id' })
+          .select()
+          .single()
 
-        if (profileError) throw profileError
+        if (profileError) {
+          console.error('Error al crear/actualizar perfil:', profileError)
+          // No intentamos eliminar el usuario de auth para evitar problemas de permisos
+          throw new Error('Error al configurar tu cuenta. Por favor contacta al soporte.')
+        }
 
-        toast.success('¡Cuenta creada exitosamente!')
+        toast.success('¡Cuenta creada exitosamente! Por favor verifica tu correo electrónico.')
         return { data, error: null }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Error al crear la cuenta')
-      return { data: null, error }
+      console.error('Error en signUp:', error)
+      const errorMessage = error.message || 'Error al crear la cuenta. Por favor inténtalo de nuevo.'
+      toast.error(errorMessage)
+      return { data: null, error: new Error(errorMessage) }
     } finally {
       loading.value = false
     }
@@ -77,18 +125,47 @@ export const useAuth = () => {
   const signIn = async (email: string, password: string) => {
     loading.value = true
     try {
+      // Validación básica
+      if (!email || !password) {
+        throw new Error('Por favor ingresa tu correo y contraseña')
+      }
+
+      const trimmedEmail = email.trim()
+      const trimmedPassword = password.trim()
+
+      // Intentamos iniciar sesión directamente
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: trimmedEmail,
+        password: trimmedPassword
       })
 
-      if (error) throw error
+      if (error) {
+        // Verificamos si el usuario existe
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', trimmedEmail)
+          .maybeSingle()
 
+        // Si no existe el usuario o hay un error de credenciales, mostramos el mismo mensaje
+        if (!existingUser || error.message.includes('Invalid login credentials')) {
+          throw new Error('Correo o contraseña incorrectos')
+        }
+        
+        // Para otros errores, mostramos el mensaje original
+        throw error
+      }
+
+      // Si el inicio de sesión fue exitoso, actualizamos el perfil
+      await getProfile()
       toast.success('¡Bienvenido de vuelta!')
       return { data, error: null }
+      
     } catch (error: any) {
-      toast.error(error.message || 'Error al iniciar sesión')
-      return { data: null, error }
+      console.error('Error en signIn:', error)
+      const errorMessage = error.message || 'Error al iniciar sesión. Por favor inténtalo de nuevo.'
+      toast.error(errorMessage)
+      return { data: null, error: new Error(errorMessage) }
     } finally {
       loading.value = false
     }
@@ -171,6 +248,75 @@ export const useAuth = () => {
     })
   }
 
+  // Función para verificar y limpiar usuarios huérfanos
+  const checkAndCleanOrphanedUser = async (email: string) => {
+    try {
+      // Verificar si el usuario existe en la tabla profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', email)
+        .maybeSingle()
+
+      // Si no existe el perfil, no hay nada que limpiar
+      if (!profile) {
+        return false
+      }
+
+      // Intentar obtener el usuario por email usando una consulta a la tabla auth.users
+      // (esto requiere permisos en la tabla auth.users)
+      const { data: authUser, error: authError } = await supabase
+        .from('auth.users')
+        .select('id, email')
+        .eq('email', email)
+        .maybeSingle()
+
+      // Si hay un error o no encontramos el usuario, no hay nada que limpiar
+      if (authError || !authUser) {
+        return false
+      }
+
+      console.log('Usuario huérfano detectado, intentando limpiar:', email)
+      
+      // En lugar de eliminar el usuario (lo que requiere permisos de administrador),
+      // actualizamos el correo a uno temporal para liberar el correo original
+      const tempEmail = `deleted_${Date.now()}_${email}`
+      
+      // Actualizar el perfil primero
+      const { error: updateProfileError } = await supabase
+        .from('profiles')
+        .update({ email: tempEmail })
+        .eq('id', profile.id)
+      
+      if (updateProfileError) {
+        console.error('Error al actualizar perfil huérfano:', updateProfileError)
+        return false
+      }
+
+      // Actualizar el correo en auth.users (esto requiere permisos de administrador)
+      try {
+        const { error: updateAuthError } = await supabase.auth.admin.updateUserById(authUser.id, {
+          email: tempEmail
+        })
+
+        if (updateAuthError) {
+          console.error('Error al actualizar usuario en auth:', updateAuthError)
+          return false
+        }
+
+        console.log('Usuario huérfano limpiado exitosamente')
+        return true
+      } catch (adminError) {
+        console.error('Error al acceder a la API de administración:', adminError)
+        // Si no tenemos permisos de administrador, al menos informamos que hay un conflicto
+        throw new Error('El correo electrónico ya está en uso. Por favor, inicia sesión o utiliza otro correo.')
+      }
+    } catch (error) {
+      console.error('Error en checkAndCleanOrphanedUser:', error)
+      return false
+    }
+  }
+
   return {
     user: computed(() => user.value),
     profile: computed(() => profile.value),
@@ -178,11 +324,16 @@ export const useAuth = () => {
     isAuthenticated,
     isAdmin,
     isModerator,
-    signUp,
+    signUp: async (email: string, password: string, fullName: string) => {
+      // Primero verificamos y limpiamos usuarios huérfanos
+      await checkAndCleanOrphanedUser(email)
+      return signUp(email, password, fullName)
+    },
     signIn,
     signOut,
     getProfile,
     updateProfile,
-    initialize
+    initialize,
+    checkAndCleanOrphanedUser
   }
 }
