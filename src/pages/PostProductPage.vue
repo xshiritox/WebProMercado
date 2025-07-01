@@ -115,17 +115,55 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">
             Imágenes del producto
           </label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+          <div 
+            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-primary-300 transition-colors"
+            @dragover.prevent="dragOver = true"
+            @dragleave="dragOver = false"
+            @drop.prevent="handleDrop"
+            :class="{ 'border-primary-500 bg-primary-50': dragOver }"
+          >
+            <input 
+              type="file" 
+              ref="fileInput" 
+              class="hidden" 
+              multiple 
+              accept="image/*"
+              @change="handleFileSelect"
+            >
             <ImageIcon class="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p class="text-gray-600 mb-4">
               Arrastra y suelta imágenes aquí o 
-              <button type="button" class="text-primary-600 hover:text-primary-700">
+              <button 
+                type="button" 
+                class="text-primary-600 hover:text-primary-700"
+                @click="$refs.fileInput.click()"
+              >
                 selecciona archivos
               </button>
             </p>
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-gray-500 mb-4">
               Máximo 5 imágenes. Formatos: JPG, PNG, WebP (máx. 5MB cada una)
             </p>
+            
+            <!-- Vista previa de imágenes -->
+            <div v-if="previewImages.length > 0" class="mt-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div v-for="(image, index) in previewImages" :key="index" class="relative group">
+                  <img :src="image.preview" class="w-full h-32 object-cover rounded-lg" />
+                  <button 
+                    @click="removeImage(index)"
+                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <p v-if="uploading" class="mt-2 text-sm text-gray-500">
+                Comprimiendo y subiendo imágenes...
+              </p>
+            </div>
           </div>
         </div>
 
@@ -211,15 +249,21 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Package, ImageIcon, Loader2 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { useProducts } from '../composables/useProducts'
+import imageCompression from 'browser-image-compression'
 
 const router = useRouter()
 const { profile } = useAuth()
 const { createProduct, categories, loading } = useProducts()
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const dragOver = ref(false)
+const previewImages = ref<Array<{ file: File, preview: string }>>([])
+const uploading = ref(false)
 
 const form = reactive({
   title: '',
@@ -230,13 +274,14 @@ const form = reactive({
   description: '',
   contact_name: '',
   contact_phone: '',
-  featured: false
+  featured: false,
+  images: [] as File[]
 })
 
 const colombianCities = [
   'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta',
   'Bucaramanga', 'Pereira', 'Santa Marta', 'Ibagué', 'Pasto', 'Manizales',
-  'Neiva', 'Soledad', 'Armenia', 'Villavicencio', 'Montería', 'Valledupar'
+  'Neiva', 'Soledad', 'Armenia', 'Villavicencio', 'Montería', 'Valledupar', 'Granada'
 ]
 
 const isFormValid = computed(() => {
@@ -250,8 +295,90 @@ const isFormValid = computed(() => {
   )
 })
 
+const compressImage = async (file: File): Promise<File> => {
+  const options = {
+    maxSizeMB: 0.1, // 100KB
+    maxWidthOrHeight: 1024,
+    useWebWorker: true,
+    maxIteration: 10
+  }
+
+  try {
+    return await imageCompression(file, options)
+  } catch (error) {
+    console.error('Error comprimiendo la imagen:', error)
+    throw error
+  }
+}
+
+const handleDrop = async (e: DragEvent) => {
+  dragOver.value = false
+  const files = e.dataTransfer?.files
+  if (files) {
+    await processFiles(Array.from(files))
+  }
+}
+
+const handleFileSelect = async (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (target.files) {
+    await processFiles(Array.from(target.files))
+    target.value = '' // Reset input para permitir cargar la misma imagen otra vez
+  }
+}
+
+const processFiles = async (files: File[]) => {
+  const validFiles = files.filter(file => 
+    file.type.startsWith('image/') && 
+    ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) &&
+    file.size <= 5 * 1024 * 1024 // 5MB
+  )
+
+  if (validFiles.length === 0) {
+    alert('Por favor, sube solo imágenes (JPG, PNG, WebP) de menos de 5MB')
+    return
+  }
+
+  const filesToProcess = validFiles.slice(0, 5 - previewImages.value.length)
+  
+  if (filesToProcess.length < validFiles.length) {
+    alert(`Solo puedes subir hasta 5 imágenes. Se procesarán ${filesToProcess.length} de ${validFiles.length} archivos.`)
+  }
+
+  uploading.value = true
+  
+  try {
+    for (const file of filesToProcess) {
+      const compressedFile = await compressImage(file)
+      const previewUrl = URL.createObjectURL(compressedFile)
+      previewImages.value.push({
+        file: compressedFile,
+        preview: previewUrl
+      })
+      form.images.push(compressedFile)
+    }
+  } catch (error) {
+    console.error('Error procesando imágenes:', error)
+    alert('Ocurrió un error al procesar las imágenes. Por favor, inténtalo de nuevo.')
+  } finally {
+    uploading.value = false
+  }
+}
+
+const removeImage = (index: number) => {
+  URL.revokeObjectURL(previewImages.value[index].preview)
+  previewImages.value.splice(index, 1)
+  form.images.splice(index, 1)
+}
+
 const handleSubmit = async () => {
   if (!isFormValid.value || !profile.value) return
+  
+  if (form.images.length === 0) {
+    if (!confirm('¿Estás seguro de publicar el producto sin imágenes?')) {
+      return
+    }
+  }
 
   const productData = {
     title: form.title,
@@ -262,12 +389,14 @@ const handleSubmit = async () => {
     location: form.location,
     user_id: profile.value.id,
     featured: form.featured,
-    images: [] // TODO: Implement image upload
+    images: form.images
   }
 
   const result = await createProduct(productData)
   
   if (result) {
+    // Limpiar vistas previas
+    previewImages.value.forEach(img => URL.revokeObjectURL(img.preview))
     router.push('/products')
   }
 }
