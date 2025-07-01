@@ -13,6 +13,10 @@ export const useAuth = () => {
   const isAuthenticated = computed(() => !!user.value)
   const isAdmin = computed(() => profile.value?.badge === 'admin')
   const isModerator = computed(() => profile.value?.badge === 'moderador' || profile.value?.badge === 'admin')
+  const isVip = computed(() => profile.value?.badge === 'vip')
+  const isColaborador = computed(() => profile.value?.badge === 'colaborador')
+  const isNuevo = computed(() => profile.value?.badge === 'nuevo' || !profile.value?.badge)
+  const isDestacado = computed(() => profile.value?.badge === 'destacado')
 
   const signUp = async (email: string, password: string, fullName: string) => {
     loading.value = true
@@ -86,27 +90,48 @@ export const useAuth = () => {
 
       // Si el registro fue exitoso, crear el perfil
       if (data.user) {
-        const profileData = {
-          id: data.user.id,
-          email: data.user.email,
-          full_name: trimmedFullName,
-          badge: 'colaborador',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          verified: false
-        }
+        try {
+          const profileData = {
+            id: data.user.id,
+            email: data.user.email,
+            full_name: trimmedFullName,
+            badge: 'nuevo',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            verified: false
+          }
+          
+          console.log('Intentando crear perfil con datos:', profileData)
 
-        // Usar upsert en lugar de insert para evitar errores de duplicados
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert(profileData, { onConflict: 'id' })
-          .select()
-          .single()
+          // Primero intentamos con insert
+          const { data: insertedProfile, error: insertError } = await supabase
+            .from('profiles')
+            .insert(profileData)
+            .select()
+            .single()
 
-        if (profileError) {
-          console.error('Error al crear/actualizar perfil:', profileError)
-          // No intentamos eliminar el usuario de auth para evitar problemas de permisos
-          throw new Error('Error al configurar tu cuenta. Por favor contacta al soporte.')
+          if (insertError) {
+            console.log('Error en insert, intentando upsert...', insertError)
+            
+            // Si falla el insert, intentamos con upsert
+            const { data: upsertedProfile, error: upsertError } = await supabase
+              .from('profiles')
+              .upsert(profileData, { onConflict: 'id' })
+              .select()
+              .single()
+
+            if (upsertError) {
+              console.error('Error en upsert:', upsertError)
+              throw new Error(`No se pudo crear el perfil: ${upsertError.message}`)
+            }
+            
+            console.log('Perfil actualizado con upsert:', upsertedProfile)
+          } else {
+            console.log('Perfil creado exitosamente:', insertedProfile)
+          }
+        } catch (profileError: any) {
+          console.error('Error detallado al crear perfil:', profileError)
+          throw new Error(`Error al configurar tu perfil: ${profileError.message}`)
         }
 
         toast.success('¡Cuenta creada exitosamente! Por favor verifica tu correo electrónico.')
@@ -324,6 +349,10 @@ export const useAuth = () => {
     isAuthenticated,
     isAdmin,
     isModerator,
+    isVip,
+    isColaborador,
+    isNuevo,
+    isDestacado,
     signUp: async (email: string, password: string, fullName: string) => {
       // Primero verificamos y limpiamos usuarios huérfanos
       await checkAndCleanOrphanedUser(email)

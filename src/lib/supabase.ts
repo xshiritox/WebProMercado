@@ -17,7 +17,7 @@ export type Database = {
           avatar_url?: string
           phone?: string
           location?: string
-          badge: 'destacado' | 'colaborador' | 'vip' | 'moderador' | 'admin'
+          badge: 'nuevo' | 'destacado' | 'colaborador' | 'vip' | 'moderador' | 'admin'
           bio?: string
           website?: string
           verified: boolean
@@ -31,7 +31,7 @@ export type Database = {
           avatar_url?: string
           phone?: string
           location?: string
-          badge?: 'destacado' | 'colaborador' | 'vip' | 'moderador' | 'admin'
+          badge?: 'nuevo' | 'destacado' | 'colaborador' | 'vip' | 'moderador' | 'admin'
           bio?: string
           website?: string
           verified?: boolean
@@ -45,7 +45,7 @@ export type Database = {
           avatar_url?: string
           phone?: string
           location?: string
-          badge?: 'destacado' | 'colaborador' | 'vip' | 'moderador' | 'admin'
+          badge?: 'nuevo' | 'destacado' | 'colaborador' | 'vip' | 'moderador' | 'admin'
           bio?: string
           website?: string
           verified?: boolean
