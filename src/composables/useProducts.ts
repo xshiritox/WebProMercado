@@ -153,6 +153,16 @@ export const useProducts = () => {
   const deleteProduct = async (id: string) => {
     loading.value = true
     try {
+      // First, get the product to access its images
+      const { data: product, error: fetchError } = await supabase
+        .from('products')
+        .select('images')
+        .eq('id', id)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Delete the product from the database
       const { error } = await supabase
         .from('products')
         .delete()
@@ -160,10 +170,56 @@ export const useProducts = () => {
 
       if (error) throw error
 
-      toast.success('Producto eliminado exitosamente')
+      // Delete associated images from storage if they exist
+      if (product?.images?.length > 0) {
+        try {
+          const imageUrls = product.images as string[]
+          const pathsToDelete = imageUrls.map(url => {
+            try {
+              // Handle both full URLs and paths
+              if (url.startsWith('http')) {
+                const urlObj = new URL(url)
+                // Extract the path after the bucket name
+                const pathParts = urlObj.pathname.split('/')
+                const bucketIndex = pathParts.indexOf('product-images')
+                if (bucketIndex !== -1) {
+                  return pathParts.slice(bucketIndex + 1).join('/')
+                }
+                // Fallback to the old method if the URL format is different
+                const match = urlObj.pathname.match(/product-images\/(.+)$/)
+                return match ? match[1] : ''
+              } else {
+                // If it's already a path, just return it
+                return url.replace(/^product-images\//, '')
+              }
+            } catch (e) {
+              console.error('Error processing image URL:', url, e)
+              return ''
+            }
+          }).filter(Boolean) // Remove any empty strings
+
+          if (pathsToDelete.length > 0) {
+            // Delete each image from storage
+            const { error: storageError } = await supabase.storage
+              .from('product-images')
+              .remove(pathsToDelete)
+
+            if (storageError) {
+              console.error('Error deleting images from storage:', storageError)
+              // Don't throw here as the product was already deleted
+            }
+          }
+        } catch (e) {
+          console.error('Error during image deletion:', e)
+          // Continue even if image deletion fails
+        }
+      }
+
+      toast.success('Producto y sus imágenes eliminados exitosamente')
       await getProducts() // Refresh products list
       return true
     } catch (error: any) {
+      console.error('Error deleting product:', error)
       toast.error(error.message || 'Error al eliminar el producto')
       return false
     } finally {

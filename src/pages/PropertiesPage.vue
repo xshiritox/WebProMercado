@@ -227,7 +227,7 @@ const filters = reactive({
 })
 
 const colombianCities = [
-  'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta',
+  'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta', 'Granada',
   'Bucaramanga', 'Pereira', 'Santa Marta', 'Ibagué', 'Pasto', 'Manizales',
   'Neiva', 'Soledad', 'Armenia', 'Villavicencio', 'Montería', 'Valledupar'
 ]

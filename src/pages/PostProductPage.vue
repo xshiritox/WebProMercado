@@ -124,7 +124,7 @@
           >
             <input 
               type="file" 
-              ref="fileInput" 
+              ref="fileInput"
               class="hidden" 
               multiple 
               accept="image/*"
@@ -136,7 +136,7 @@
               <button 
                 type="button" 
                 class="text-primary-600 hover:text-primary-700"
-                @click="$refs.fileInput.click()"
+                @click="fileInput?.click()"
               >
                 selecciona archivos
               </button>
@@ -250,6 +250,7 @@
 
 <script setup lang="ts">
 import { reactive, computed, onMounted, ref } from 'vue'
+
 import { useRouter } from 'vue-router'
 import { Package, ImageIcon, Loader2 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
@@ -258,14 +259,14 @@ import { useToast } from 'vue-toastification'
 import imageCompression from 'browser-image-compression'
 import { supabase } from '../lib/supabase'
 
+const fileInput = ref<HTMLInputElement | null>(null)
+const dragOver = ref(false)
+
 const router = useRouter()
 const toast = useToast()
 const { profile } = useAuth()
 const { createProduct, categories } = useProducts()
 const loading = ref(false)
-
-const fileInput = ref<HTMLInputElement | null>(null)
-const dragOver = ref(false)
 const previewImages = ref<Array<{ file: File, preview: string }>>([])
 const uploading = ref(false)
 
@@ -409,7 +410,7 @@ const handleSubmit = async () => {
         const filePath = `products/${fileName}`
         
         console.log('Subiendo a Supabase Storage...')
-        const { data, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('product-images')
           .upload(filePath, file, {
             cacheControl: '3600',
