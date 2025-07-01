@@ -436,7 +436,7 @@ const handleSubmit = async () => {
         const filePath = `products/${fileName}`
         
         console.log('Subiendo a Supabase Storage...')
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('product-images')
           .upload(filePath, fileToUpload, {
             cacheControl: '3600',
