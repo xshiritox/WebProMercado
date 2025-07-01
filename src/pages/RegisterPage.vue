@@ -218,9 +218,9 @@ const handleRegister = async () => {
     return
   }
 
-  const { error } = await signUp(form.email, form.password, form.fullName)
+  const result = await signUp(form.email, form.password, form.fullName)
   
-  if (!error) {
+  if (result && !result.error) {
     router.push('/')
   }
 }

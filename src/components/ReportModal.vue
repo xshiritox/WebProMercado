@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { reactive, watch } from 'vue'
 import { X, Loader2 } from 'lucide-vue-next'
 import { useReports } from '../composables/useReports'
 

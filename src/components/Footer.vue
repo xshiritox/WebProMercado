@@ -8,11 +8,11 @@
             <div class="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-500 rounded-lg flex items-center justify-center">
               <ShoppingBag class="w-5 h-5 text-white" />
             </div>
-            <span class="text-xl font-bold">ColombiaMarket</span>
+            <span class="text-xl font-bold">WebProMercado</span>
           </div>
           <p class="text-gray-300 mb-4">
-            La plataforma líder en Colombia para comprar y vender productos, propiedades y servicios. 
-            Conectamos a compradores y vendedores de todo el país.
+            La plataforma líder para comprar y vender productos, propiedades y servicios. 
+            Conectamos a compradores y vendedores.
           </p>
           <div class="flex space-x-4">
             <a href="#" class="text-gray-400 hover:text-white transition-colors">
@@ -87,7 +87,7 @@
 
       <div class="border-t border-gray-800 mt-8 pt-8 text-center">
         <p class="text-gray-400">
-          © {{ currentYear }} ColombiaMarket. Todos los derechos reservados.
+          © {{ currentYear }} WebProMercado. Todos los derechos reservados.
         </p>
       </div>
     </div>

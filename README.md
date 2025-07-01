@@ -1,12 +1,16 @@
-# ColombiaMarket
+# WebProMercado
 
-Una plataforma moderna de clasificados para Colombia donde los usuarios pueden comprar y vender productos, propiedades y servicios.
+Una plataforma moderna de clasificados donde los usuarios pueden comprar y vender productos, propiedades y servicios.
 
 ## Características
 
-- 🛍️ **Marketplace completo**: Productos, propiedades y servicios
-- 🔐 **Autenticación segura**: Registro e inicio de sesión con Supabase
-- 🏆 **Sistema de insignias**: Destacado, Colaborador, VIP, Moderador, Admin
+- **Marketplace completo**: Productos, propiedades y servicios
+- **Autenticación segura**: Registro e inicio de sesión con Supabase
+- **Sistema de insignias**: Destacado, Colaborador, VIP, Moderador, Admin
+- **Diseño responsivo**: Optimizado para móvil y desktop
+- **Búsqueda avanzada**: Filtros por categoría, precio, ubicación
+- **Panel de administración**: Gestión de usuarios y contenido
+- **Diseño moderno**: Interfaz limpia inspirada en los mejores marketplaces
 - 📱 **Diseño responsivo**: Optimizado para móvil y desktop
 - 🔍 **Búsqueda avanzada**: Filtros por categoría, precio, ubicación
 - 👥 **Panel de administración**: Gestión de usuarios y contenido

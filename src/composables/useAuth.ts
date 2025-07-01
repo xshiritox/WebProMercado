@@ -139,7 +139,7 @@ export const useAuth = () => {
       await getProfile()
     }
 
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    supabase.auth.onAuthStateChange(async (_, session) => {
       if (session?.user) {
         user.value = session.user
         await getProfile()

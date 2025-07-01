@@ -211,7 +211,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Package, ImageIcon, Loader2 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'

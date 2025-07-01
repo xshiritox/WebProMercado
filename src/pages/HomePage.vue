@@ -6,7 +6,7 @@
         <div class="text-center">
           <h1 class="text-4xl md:text-6xl font-bold mb-6">
             Compra y Vende en
-            <span class="text-secondary-200">Colombia</span>
+            <span class="text-secondary-200">WebProMercado</span>
           </h1>
           <p class="text-xl md:text-2xl mb-8 text-blue-100">
             La plataforma líder para productos, propiedades y servicios
@@ -129,7 +129,7 @@
     <section class="py-16 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-          <h2 class="text-3xl font-bold text-gray-900 mb-4">¿Por qué ColombiaMarket?</h2>
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">¿Por qué WebProMercado?</h2>
           <p class="text-gray-600 text-lg">La mejor plataforma para comprar y vender en Colombia</p>
         </div>
 
@@ -192,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   Search, Package, UserPlus, Plus, ArrowRight, Shield, Zap, Users,

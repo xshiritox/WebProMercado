@@ -141,8 +141,7 @@ const {
   loading, 
   categories, 
   searchQuery, 
-  selectedCategory, 
-  sortBy,
+  selectedCategory,
   searchProducts, 
   filterByCategory, 
   setSortBy 
@@ -152,7 +151,6 @@ const searchInput = ref('')
 const selectedCategoryLocal = ref('')
 const sortByLocal = ref('created_at')
 const priceRange = ref('')
-const filteredByPrice = ref<any[]>([])
 
 const handleSearch = () => {
   searchProducts(searchInput.value)

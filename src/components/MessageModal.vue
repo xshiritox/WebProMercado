@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { reactive, computed, watch } from 'vue'
 import { X, Loader2, Send } from 'lucide-vue-next'
 import { useMessages } from '../composables/useMessages'
 
