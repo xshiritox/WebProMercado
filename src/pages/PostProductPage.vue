@@ -254,11 +254,15 @@ import { useRouter } from 'vue-router'
 import { Package, ImageIcon, Loader2 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { useProducts } from '../composables/useProducts'
+import { useToast } from 'vue-toastification'
 import imageCompression from 'browser-image-compression'
+import { supabase } from '../lib/supabase'
 
 const router = useRouter()
+const toast = useToast()
 const { profile } = useAuth()
-const { createProduct, categories, loading } = useProducts()
+const { createProduct, categories } = useProducts()
+const loading = ref(false)
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const dragOver = ref(false)
@@ -372,7 +376,18 @@ const removeImage = (index: number) => {
 }
 
 const handleSubmit = async () => {
-  if (!isFormValid.value || !profile.value) return
+  console.log('Iniciando envío del formulario...')
+  
+  if (!isFormValid.value) {
+    console.error('Formulario no válido')
+    return
+  }
+  
+  if (!profile.value) {
+    console.error('No hay usuario autenticado')
+    toast.error('Debes iniciar sesión para publicar un producto')
+    return
+  }
   
   if (form.images.length === 0) {
     if (!confirm('¿Estás seguro de publicar el producto sin imágenes?')) {
@@ -380,24 +395,94 @@ const handleSubmit = async () => {
     }
   }
 
-  const productData = {
-    title: form.title,
-    description: form.description,
-    price: form.price!,
-    category: form.category,
-    condition: form.condition as 'nuevo' | 'usado' | 'reacondicionado',
-    location: form.location,
-    user_id: profile.value.id,
-    featured: form.featured,
-    images: form.images
-  }
+  try {
+    console.log('Iniciando carga de imágenes...')
+    loading.value = true
+    
+    // Subir imágenes primero
+    const imageUrls = []
+    for (const file of form.images) {
+      try {
+        console.log('Procesando imagen:', file.name)
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
+        const filePath = `products/${fileName}`
+        
+        console.log('Subiendo a Supabase Storage...')
+        const { data, error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          })
+        
+        if (uploadError) {
+          if (uploadError.message.includes('Bucket not found')) {
+            console.error('Error: El bucket no existe. Por favor crea un bucket llamado "product-images" en Supabase Storage.')
+            toast.error('Error de configuración: El almacenamiento de imágenes no está configurado correctamente.')
+          } else {
+            console.error('Error de Supabase Storage:', uploadError)
+            toast.error(`Error al subir la imagen: ${uploadError.message}`)
+          }
+          throw uploadError
+        }
+        
+        // Obtener URL pública
+        console.log('Obteniendo URL pública...')
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath)
+        
+        if (!publicUrl) {
+          console.error('No se pudo obtener la URL pública de la imagen')
+          toast.error('Error al obtener la URL de la imagen')
+          return
+        }
+        
+        console.log('Imagen subida correctamente:', publicUrl)
+        imageUrls.push(publicUrl)
+      } catch (error) {
+        console.error('Error subiendo imagen:', error)
+        toast.error('Error al subir una o más imágenes')
+        loading.value = false
+        return
+      }
+    }
 
-  const result = await createProduct(productData)
-  
-  if (result) {
-    // Limpiar vistas previas
-    previewImages.value.forEach(img => URL.revokeObjectURL(img.preview))
-    router.push('/products')
+    console.log('Preparando datos del producto...')
+    const productData = {
+      title: form.title,
+      description: form.description,
+      price: form.price!,
+      category: form.category,
+      condition: form.condition as 'nuevo' | 'usado' | 'reacondicionado',
+      location: form.location,
+      user_id: profile.value.id,
+      featured: form.featured,
+      images: imageUrls,
+      contact_name: form.contact_name,
+      contact_phone: form.contact_phone
+    }
+
+    console.log('Creando producto...', productData)
+    const result = await createProduct(productData)
+    
+    if (result) {
+      console.log('Producto creado exitosamente:', result)
+      // Limpiar vistas previas
+      previewImages.value.forEach(img => URL.revokeObjectURL(img.preview))
+      toast.success('¡Producto publicado exitosamente!')
+      router.push('/products')
+    } else {
+      console.error('No se pudo crear el producto')
+      toast.error('No se pudo publicar el producto. Inténtalo de nuevo.')
+    }
+  } catch (error) {
+    console.error('Error en handleSubmit:', error)
+    toast.error('Error al publicar el producto. Por favor, inténtalo de nuevo.')
+  } finally {
+    console.log('Finalizando proceso de envío...')
+    loading.value = false
   }
 }
 
