@@ -564,7 +564,7 @@ const handleSubmit = async () => {
       stratum: form.stratum
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('properties')
       .insert(propertyData)
       .select()

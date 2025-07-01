@@ -493,7 +493,7 @@ const handleSubmit = async () => {
       images: imageUrls
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('services')
       .insert(serviceData)
       .select()
