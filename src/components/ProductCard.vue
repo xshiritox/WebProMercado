@@ -1,11 +1,16 @@
 <template>
   <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
     <!-- Product Image -->
-    <div class="relative">
+    <div class="relative h-48 bg-gray-100">
+      <div v-if="!product.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+        <ImageOff class="w-12 h-12 mb-2" />
+        <span class="text-sm">Sin imagen disponible</span>
+      </div>
       <img
-        :src="product.images?.[0] || 'https://images.pexels.com/photos/4041392/pexels-photo-4041392.jpeg'"
+        v-else
+        :src="product.images[0]"
         :alt="product.title"
-        class="w-full h-48 object-cover"
+        class="w-full h-full object-cover"
       />
       <div v-if="product.featured" class="absolute top-2 left-2">
         <span
@@ -83,7 +88,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Star, MapPin, Clock, User } from 'lucide-vue-next'
+import { Star, MapPin, Clock, User, ImageOff } from 'lucide-vue-next'
 
 interface Props {
   product: any

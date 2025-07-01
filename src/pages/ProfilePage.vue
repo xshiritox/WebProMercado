@@ -197,10 +197,15 @@
           class="border border-gray-200 rounded-lg p-4"
         >
           <img
-            :src="product.images?.[0] || 'https://images.pexels.com/photos/4041392/pexels-photo-4041392.jpeg'"
+            :src="product.images?.[0]"
             :alt="product.title"
-            class="w-full h-32 object-cover rounded-lg mb-3"
+            class="w-full h-48 object-cover"
+            v-if="product.images?.[0]"
           />
+          <div v-else class="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+            <ImageOff class="w-8 h-8 mb-2" />
+            <span class="text-sm">Sin imagen</span>
+          </div>
           <h3 class="font-semibold text-gray-900 mb-1">{{ product.title }}</h3>
           <p class="text-primary-600 font-bold mb-2">${{ formatPrice(product.price) }}</p>
           <div class="flex items-center gap-2 text-sm text-gray-600 mb-3">
@@ -230,7 +235,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  User, Package, ShoppingCart, Star, Plus, LogOut, Loader2 
+  User, Package, ShoppingCart, Star, Plus, LogOut, Loader2, ImageOff 
 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { useProducts } from '../composables/useProducts'

@@ -194,6 +194,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { supabase } from '../lib/supabase'
 import { 
   Search, Package, UserPlus, Plus, ArrowRight, Shield, Zap, Users,
   Smartphone, Car, Home, Shirt, Dumbbell, Book, Building, Wrench
@@ -209,16 +210,22 @@ const { getProducts, loading } = useProducts()
 const searchQuery = ref('')
 const featuredProducts = ref<any[]>([])
 
-const categories = [
-  { name: 'Electrónicos', icon: Smartphone, count: 1250 },
-  { name: 'Vehículos', icon: Car, count: 890 },
-  { name: 'Hogar y Jardín', icon: Home, count: 2100 },
-  { name: 'Moda y Belleza', icon: Shirt, count: 1800 },
-  { name: 'Deportes', icon: Dumbbell, count: 650 },
-  { name: 'Libros y Música', icon: Book, count: 420 },
-  { name: 'Inmuebles', icon: Building, count: 340 },
-  { name: 'Servicios', icon: Wrench, count: 780 }
-]
+interface Category {
+  name: string
+  icon: any
+  count?: number
+}
+
+const categories = ref<Category[]>([
+  { name: 'Electrónicos', icon: Smartphone, count: 0 },
+  { name: 'Vehículos', icon: Car, count: 0 },
+  { name: 'Hogar y Jardín', icon: Home, count: 0 },
+  { name: 'Moda y Belleza', icon: Shirt, count: 0 },
+  { name: 'Deportes', icon: Dumbbell, count: 0 },
+  { name: 'Libros y Música', icon: Book, count: 0 },
+  { name: 'Inmuebles', icon: Building, count: 0 },
+  { name: 'Servicios', icon: Wrench, count: 0 }
+])
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
@@ -230,8 +237,40 @@ const navigateToCategory = (category: string) => {
   router.push({ name: 'products', query: { category } })
 }
 
+const loadCategoryCounts = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('category')
+      .eq('status', 'active')
+      .not('category', 'is', null)
+
+    if (error) throw error
+
+    // Contar productos por categoría
+    const counts: Record<string, number> = {}
+    data?.forEach((item: any) => {
+      counts[item.category] = (counts[item.category] || 0) + 1
+    })
+
+    // Actualizar los contadores en las categorías, filtrar las que tienen 0 y ordenar de mayor a menor
+    categories.value = categories.value
+      .map(cat => ({
+        ...cat,
+        count: counts[cat.name] || 0
+      }))
+      .filter(cat => cat.count > 0) // Solo mantener categorías con al menos un producto
+      .sort((a, b) => b.count - a.count)
+  } catch (error) {
+    console.error('Error al cargar el conteo de productos por categoría:', error)
+  }
+}
+
 onMounted(async () => {
-  const products = await getProducts()
+  const [products] = await Promise.all([
+    getProducts(),
+    loadCategoryCounts()
+  ])
   featuredProducts.value = products?.slice(0, 8) || []
 })
 </script>

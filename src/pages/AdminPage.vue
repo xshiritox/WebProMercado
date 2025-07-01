@@ -197,13 +197,17 @@
             <div
               v-for="product in filteredProducts"
               :key="product.id"
-              class="bg-white border border-gray-200 rounded-lg p-4"
+              class="border border-gray-200 rounded-lg p-4"
             >
               <img
-                :src="product.images?.[0] || 'https://images.pexels.com/photos/4041392/pexels-photo-4041392.jpeg'"
+                :src="product.images?.[0]"
                 :alt="product.title"
                 class="w-full h-32 object-cover rounded-lg mb-3"
+                v-if="product.images?.[0]"
               />
+              <div v-else class="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                <ImageOff class="w-8 h-8" />
+              </div>
               <h3 class="font-semibold text-gray-900 mb-1 truncate">{{ product.title }}</h3>
               <p class="text-primary-600 font-bold mb-2">${{ formatPrice(product.price) }}</p>
               <div class="flex items-center justify-between text-sm text-gray-600 mb-3">
@@ -299,7 +303,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { 
-  Users, Package, DollarSign, AlertTriangle, Search, User, Settings
+  Users, Package, DollarSign, AlertTriangle, Search, User, Settings, ImageOff
 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 

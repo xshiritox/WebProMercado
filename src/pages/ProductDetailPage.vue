@@ -50,10 +50,15 @@
       <div>
         <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
           <img
-            :src="product.images?.[0] || 'https://images.pexels.com/photos/4041392/pexels-photo-4041392.jpeg'"
+            :src="product.images?.[0]"
             :alt="product.title"
-            class="w-full h-full object-cover"
+            class="w-full h-96 object-cover rounded-lg"
+            v-if="product.images?.[0]"
           />
+          <div v-else class="w-full h-96 bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400">
+            <ImageOff class="w-16 h-16 mb-4" />
+            <span class="text-lg">Sin imagen disponible</span>
+          </div>
         </div>
         
         <!-- Thumbnail Images -->
@@ -212,7 +217,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { 
-  Star, MapPin, User, Phone, MessageCircle, Mail, ChevronRight, AlertCircle 
+  Star, MapPin, User, Phone, MessageCircle, Mail, ChevronRight, AlertCircle, ImageOff 
 } from 'lucide-vue-next'
 import ProductCard from '../components/ProductCard.vue'
 import { useProducts } from '../composables/useProducts'
