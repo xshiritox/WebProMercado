@@ -8,7 +8,7 @@
             <div class="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-500 rounded-lg flex items-center justify-center">
               <ShoppingBag class="w-5 h-5 text-white" />
             </div>
-            <span class="text-xl font-bold">WebProMercado</span>
+            <span class="text-xl font-bold">PubliNet</span>
           </div>
           <p class="text-gray-300 mb-4">
             La plataforma líder para comprar y vender productos, propiedades y servicios. 
@@ -87,7 +87,7 @@
 
       <div class="border-t border-gray-800 mt-8 pt-8 text-center">
         <p class="text-gray-400">
-          © {{ currentYear }} WebProMercado. Todos los derechos reservados.
+          © {{ currentYear }} PubliNet. Todos los derechos reservados.
         </p>
       </div>
     </div>

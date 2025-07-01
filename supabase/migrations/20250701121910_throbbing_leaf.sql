@@ -1,5 +1,5 @@
 /*
-  # Esquema completo de la base de datos para WebProMercado
+  # Esquema completo de la base de datos para PubliNet
 
   1. Nuevas Tablas
     - `profiles` - Perfiles de usuario con información adicional

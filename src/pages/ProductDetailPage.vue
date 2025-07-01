@@ -300,7 +300,7 @@ const callSeller = () => {
 
 const openWhatsApp = () => {
   if (product.value?.profiles?.phone) {
-    const message = `Hola, estoy interesado en tu producto "${product.value.title}" publicado en WebProMercado.`
+    const message = `Hola, estoy interesado en tu producto "${product.value.title}" publicado en PubliNet.`
     const phone = product.value.profiles.phone.replace(/\D/g, '')
     window.open(`https://wa.me/57${phone}?text=${encodeURIComponent(message)}`)
   }
@@ -309,7 +309,7 @@ const openWhatsApp = () => {
 const sendEmail = () => {
   if (product.value?.profiles?.email) {
     const subject = `Interés en: ${product.value.title}`
-    const body = `Hola,\n\nEstoy interesado en tu producto "${product.value.title}" publicado en WebProMercado.\n\nPor favor, contáctame para más información.\n\nGracias.`
+    const body = `Hola,\n\nEstoy interesado en tu producto "${product.value.title}" publicado en PubliNet.\n\nPor favor, contáctame para más información.\n\nGracias.`
     window.open(`mailto:${product.value.profiles.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
   }
 }

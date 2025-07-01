@@ -1,4 +1,4 @@
-# WebProMercado
+# PubliNet
 
 Una plataforma moderna de clasificados donde los usuarios pueden comprar y vender productos, propiedades y servicios.
 

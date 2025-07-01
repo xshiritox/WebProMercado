@@ -8,7 +8,7 @@
             <div class="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-500 rounded-lg flex items-center justify-center">
               <ShoppingBag class="w-5 h-5 text-white" />
             </div>
-            <span class="text-xl font-bold gradient-text">WebProMercado</span>
+            <span class="text-xl font-bold gradient-text">PubliNet</span>
           </router-link>
         </div>
 
