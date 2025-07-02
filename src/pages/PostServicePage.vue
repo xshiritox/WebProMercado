@@ -280,6 +280,7 @@ import { Wrench, ImageIcon, Loader2, X } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { useToast } from 'vue-toastification'
 import imageCompression from 'browser-image-compression'
+import { uploadFile } from '../utils/storage'
 import { supabase } from '../lib/supabase'
 
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -352,16 +353,22 @@ const isFormValid = computed(() => {
 
 const compressImage = async (file: File): Promise<File> => {
   const options = {
-    maxSizeMB: 0.1,
-    maxWidthOrHeight: 1024,
+    maxSizeMB: 0.5, // Tamaño máximo de 0.5MB
+    maxWidthOrHeight: 1200, // Ancho o alto máximo
     useWebWorker: true,
     maxIteration: 10
   }
 
   try {
-    return await imageCompression(file, options)
+    const compressedBlob = await imageCompression(file, options)
+    // Convertir Blob a File
+    return new File([compressedBlob], file.name, {
+      type: file.type,
+      lastModified: Date.now()
+    })
   } catch (error) {
     console.error('Error comprimiendo la imagen:', error)
+    toast.error('Error al procesar la imagen')
     throw error
   }
 }
@@ -383,38 +390,63 @@ const handleFileSelect = async (e: Event) => {
 }
 
 const processFiles = async (files: File[]) => {
-  const validFiles = files.filter(file => 
-    file.type.startsWith('image/') && 
-    ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) &&
-    file.size <= 5 * 1024 * 1024
-  )
+  // Validar tipos de archivo
+  const validFiles = files.filter(file => {
+    const isValidType = file.type.startsWith('image/') && 
+      ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+    
+    if (!isValidType) {
+      toast.warning(`El archivo ${file.name} no es una imagen válida (solo JPG, PNG, WebP)`)
+      return false
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast.warning(`La imagen ${file.name} es demasiado grande (máx. 5MB)`)
+      return false
+    }
+    
+    return true
+  })
 
   if (validFiles.length === 0) {
-    alert('Por favor, sube solo imágenes (JPG, PNG, WebP) de menos de 5MB')
+    toast.error('No hay imágenes válidas para subir')
     return
   }
 
-  const filesToProcess = validFiles.slice(0, 8 - previewImages.value.length)
+  const maxFiles = 8
+  const filesToProcess = validFiles.slice(0, maxFiles - previewImages.value.length)
   
   if (filesToProcess.length < validFiles.length) {
-    alert(`Solo puedes subir hasta 8 imágenes. Se procesarán ${filesToProcess.length} de ${validFiles.length} archivos.`)
+    toast.warning(`Solo puedes subir hasta ${maxFiles} imágenes. Se procesarán ${filesToProcess.length} de ${validFiles.length} archivos.`)
   }
 
   uploading.value = true
   
   try {
     for (const file of filesToProcess) {
-      const compressedFile = await compressImage(file)
-      const previewUrl = URL.createObjectURL(compressedFile)
-      previewImages.value.push({
-        file: compressedFile,
-        preview: previewUrl
-      })
-      form.images.push(compressedFile)
+      try {
+        // Comprimir la imagen
+        const compressedFile = await compressImage(file)
+        
+        // Crear vista previa
+        const previewUrl = URL.createObjectURL(compressedFile)
+        
+        // Agregar a las vistas previas
+        previewImages.value.push({
+          file: compressedFile,
+          preview: previewUrl
+        })
+        
+        // Agregar el archivo comprimido al formulario
+        form.images.push(compressedFile)
+      } catch (error) {
+        console.error('Error procesando imagen:', file.name, error)
+        toast.error(`Error al procesar la imagen ${file.name}`)
+      }
     }
   } catch (error) {
-    console.error('Error procesando imágenes:', error)
-    alert('Ocurrió un error al procesar las imágenes. Por favor, inténtalo de nuevo.')
+    console.error('Error inesperado al procesar imágenes:', error)
+    toast.error('Ocurrió un error al procesar las imágenes. Por favor, inténtalo de nuevo.')
   } finally {
     uploading.value = false
   }
@@ -428,6 +460,7 @@ const removeImage = (index: number) => {
 
 const handleSubmit = async () => {
   if (!isFormValid.value) {
+    toast.error('Por favor completa todos los campos requeridos')
     return
   }
   
@@ -436,43 +469,33 @@ const handleSubmit = async () => {
     return
   }
 
+  if (form.images.length === 0) {
+    toast.error('Por favor, sube al menos una imagen del servicio')
+    return
+  }
+
   try {
     loading.value = true
     
     // Subir imágenes
     const imageUrls = []
-    for (const file of form.images) {
+    for (const [index, file] of form.images.entries()) {
       try {
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
-        const filePath = `services/${fileName}`
+        toast.info(`Subiendo imagen ${index + 1} de ${form.images.length}...`)
         
-        const { error: uploadError } = await supabase.storage
-          .from('service-images')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          })
+        // Subir la imagen usando la utilidad de almacenamiento
+        const imageUrl = await uploadFile(
+          'service-images',  // bucket
+          file,              // archivo
+          `services/${profile.value.id}`,  // ruta
+          `service_${Date.now()}_${index}.${file.name.split('.').pop()}`  // nombre de archivo
+        )
         
-        if (uploadError) {
-          console.error('Error de Supabase Storage:', uploadError)
-          toast.error(`Error al subir la imagen: ${uploadError.message}`)
-          throw uploadError
-        }
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('service-images')
-          .getPublicUrl(filePath)
-        
-        if (!publicUrl) {
-          toast.error('Error al obtener la URL de la imagen')
-          return
-        }
-        
-        imageUrls.push(publicUrl)
-      } catch (error) {
+        imageUrls.push(imageUrl)
+        toast.success(`Imagen ${index + 1} subida correctamente`)
+      } catch (error: any) {
         console.error('Error subiendo imagen:', error)
-        toast.error('Error al subir una o más imágenes')
+        toast.error(`Error al subir la imagen ${index + 1}: ${error.message || 'Error desconocido'}`)
         loading.value = false
         return
       }

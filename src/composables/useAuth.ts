@@ -235,21 +235,89 @@ export const useAuth = () => {
 
   // Initialize auth state
   const initialize = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.user) {
-      user.value = session.user
-      await getProfile()
-    }
+    try {
+      // Primero intentamos obtener la sesión actual
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      // Si hay un error en la sesión, forzamos un cierre de sesión
+      if (sessionError) {
+        console.error('Error al obtener la sesión:', sessionError)
+        await handleInvalidSession()
+        return
+      }
 
-    supabase.auth.onAuthStateChange(async (_, session) => {
+      // Si hay una sesión válida, actualizamos el estado
       if (session?.user) {
         user.value = session.user
         await getProfile()
-      } else {
-        user.value = null
-        profile.value = null
       }
-    })
+
+      // Configuramos el listener de cambios de autenticación
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('Auth state changed:', event)
+        
+        if (!session) {
+          // Si no hay sesión, limpiamos el estado
+          user.value = null
+          profile.value = null
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('sb-auth-token')
+            sessionStorage.removeItem('sb-auth-token')
+          }
+        } else if (session?.user) {
+          user.value = session.user
+          await getProfile()
+        }
+      })
+
+      // Retornamos la función para desuscribirnos cuando sea necesario
+      return () => {
+        subscription?.unsubscribe()
+      }
+    } catch (error) {
+      console.error('Error en initialize auth:', error)
+      await handleInvalidSession()
+    }
+  }
+
+  // Función para manejar sesión inválida
+  const handleInvalidSession = async () => {
+    console.log('Manejando sesión inválida...')
+    // Forzamos cierre de sesión en Supabase
+    await supabase.auth.signOut()
+    
+    // Limpiamos el estado local
+    user.value = null
+    profile.value = null
+    
+    // Limpiamos el almacenamiento local
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('sb-auth-token')
+      sessionStorage.removeItem('sb-auth-token')
+    }
+    
+    // Redirigir a la página de inicio de sesión si no estamos ya ahí
+    if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+      window.location.href = '/login?session_expired=true'
+    }
+  }
+
+  // Interceptar errores de autenticación
+  const withAuthErrorHandling = async (fn: Function, ...args: any[]) => {
+    try {
+      return await fn(...args)
+    } catch (error: any) {
+      console.error('Auth error:', error)
+      
+      // Manejar específicamente el error de token inválido
+      if (error.message?.includes('Invalid Refresh Token') || 
+          error.message?.includes('Auth session missing') ||
+          error.status === 401) {
+        await handleInvalidSession()
+      }
+      
+      throw error
+    }
   }
 
   // Función para verificar y limpiar usuarios huérfanos
@@ -268,7 +336,6 @@ export const useAuth = () => {
       }
 
       // Intentar obtener el usuario por email usando una consulta a la tabla auth.users
-      // (esto requiere permisos en la tabla auth.users)
       const { data: authUser, error: authError } = await supabase
         .from('auth.users')
         .select('id, email')
@@ -282,8 +349,7 @@ export const useAuth = () => {
 
       console.log('Usuario huérfano detectado, intentando limpiar:', email)
       
-      // En lugar de eliminar el usuario (lo que requiere permisos de administrador),
-      // actualizamos el correo a uno temporal para liberar el correo original
+      // Actualizamos el correo a uno temporal para liberar el correo original
       const tempEmail = `deleted_${Date.now()}_${email}`
       
       // Actualizar el perfil primero
@@ -312,7 +378,7 @@ export const useAuth = () => {
         return true
       } catch (adminError) {
         console.error('Error al acceder a la API de administración:', adminError)
-        // Si no tenemos permisos de administrador, al menos informamos que hay un conflicto
+        // Si no tenemos permisos de administrador, informamos que hay un conflicto
         throw new Error('El correo electrónico ya está en uso. Por favor, inicia sesión o utiliza otro correo.')
       }
     } catch (error) {
@@ -333,15 +399,28 @@ export const useAuth = () => {
     isDestacado,
     hasNoBadge,
     signUp: async (email: string, password: string, fullName: string) => {
-      // Primero verificamos y limpiamos usuarios huérfanos
-      await checkAndCleanOrphanedUser(email)
-      return signUp(email, password, fullName)
+      return withAuthErrorHandling(async () => {
+        // Primero verificamos y limpiamos usuarios huérfanos
+        await checkAndCleanOrphanedUser(email)
+        return signUp(email, password, fullName)
+      })
     },
-    signIn,
-    signOut,
-    getProfile,
-    updateProfile,
+    signIn: async (email: string, password: string) => {
+      return withAuthErrorHandling(() => signIn(email, password))
+    },
+    signOut: async () => {
+      return withAuthErrorHandling(signOut)
+    },
+    getProfile: async () => {
+      return withAuthErrorHandling(getProfile)
+    },
+    updateProfile: async (updates: any) => {
+      return withAuthErrorHandling(() => updateProfile(updates))
+    },
     initialize,
-    checkAndCleanOrphanedUser
+    checkAndCleanOrphanedUser: async (email: string) => {
+      return withAuthErrorHandling(() => checkAndCleanOrphanedUser(email))
+    },
+    handleInvalidSession
   }
 }

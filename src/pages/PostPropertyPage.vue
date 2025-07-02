@@ -365,7 +365,12 @@ const compressImage = async (file: File): Promise<File> => {
   }
 
   try {
-    return await imageCompression(file, options)
+    const compressedBlob = await imageCompression(file, options)
+    // Convert Blob to File
+    return new File([compressedBlob], file.name, {
+      type: compressedBlob.type,
+      lastModified: Date.now()
+    })
   } catch (error) {
     console.error('Error comprimiendo la imagen:', error)
     throw error
