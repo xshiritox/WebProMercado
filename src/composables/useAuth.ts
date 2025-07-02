@@ -88,52 +88,8 @@ export const useAuth = () => {
         throw signUpError
       }
 
-      // Si el registro fue exitoso, crear el perfil
+      // Si el registro fue exitoso, el perfil se crea automáticamente por el trigger de la base de datos
       if (data.user) {
-        try {
-          const profileData = {
-            id: data.user.id,
-            email: data.user.email,
-            full_name: trimmedFullName,
-            badge: null, // No asignar ningún rol por defecto
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            verified: false
-          }
-          
-          console.log('Intentando crear perfil con datos:', profileData)
-
-          // Primero intentamos con insert
-          const { data: insertedProfile, error: insertError } = await supabase
-            .from('profiles')
-            .insert(profileData)
-            .select()
-            .single()
-
-          if (insertError) {
-            console.log('Error en insert, intentando upsert...', insertError)
-            
-            // Si falla el insert, intentamos con upsert
-            const { data: upsertedProfile, error: upsertError } = await supabase
-              .from('profiles')
-              .upsert(profileData, { onConflict: 'id' })
-              .select()
-              .single()
-
-            if (upsertError) {
-              console.error('Error en upsert:', upsertError)
-              throw new Error(`No se pudo crear el perfil: ${upsertError.message}`)
-            }
-            
-            console.log('Perfil actualizado con upsert:', upsertedProfile)
-          } else {
-            console.log('Perfil creado exitosamente:', insertedProfile)
-          }
-        } catch (profileError: any) {
-          console.error('Error detallado al crear perfil:', profileError)
-          throw new Error(`Error al configurar tu perfil: ${profileError.message}`)
-        }
-
         toast.success('¡Cuenta creada exitosamente! Por favor verifica tu correo electrónico.')
         return { data, error: null }
       }
