@@ -134,11 +134,16 @@
         @click="viewProperty(property.id)"
       >
         <!-- Property Image -->
-        <div class="relative">
+        <div class="relative h-48 bg-gray-100">
+          <div v-if="!property.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+            <ImageOff class="w-12 h-12 mb-2" />
+            <span class="text-sm">Sin imagen disponible</span>
+          </div>
           <img
-            :src="property.images?.[0] || 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg'"
+            v-else
+            :src="property.images[0]"
             :alt="property.title"
-            class="w-full h-48 object-cover"
+            class="w-full h-full object-cover"
           />
           <div class="absolute top-2 left-2">
             <span
@@ -207,7 +212,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  Plus, Home, Star, MapPin, Clock, Bed, Bath, Square 
+  Plus, Home, Star, MapPin, Clock, Bed, Bath, Square, ImageOff 
 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { supabase } from '../lib/supabase'

@@ -122,6 +122,22 @@
 
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
+                    <Home class="w-4 h-4 text-blue-600" />
+                    <span class="text-sm text-gray-600">Propiedades publicadas</span>
+                  </div>
+                  <span class="font-semibold text-gray-900">{{ userStats.properties }}</span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <Wrench class="w-4 h-4 text-green-600" />
+                    <span class="text-sm text-gray-600">Servicios publicados</span>
+                  </div>
+                  <span class="font-semibold text-gray-900">{{ userStats.services }}</span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
                     <ShoppingCart class="w-4 h-4 text-green-600" />
                     <span class="text-sm text-gray-600">Productos vendidos</span>
                   </div>
@@ -153,6 +169,22 @@
                   Publicar Producto
                 </router-link>
 
+                <router-link
+                  to="/post-property"
+                  class="w-full btn-outline justify-center"
+                >
+                  <Plus class="w-4 h-4" />
+                  Publicar Propiedad
+                </router-link>
+
+                <router-link
+                  to="/post-service"
+                  class="w-full btn-outline justify-center"
+                >
+                  <Plus class="w-4 h-4" />
+                  Publicar Servicio
+                </router-link>
+
                 <button
                   @click="handleSignOut"
                   class="w-full btn-outline justify-center"
@@ -167,66 +199,225 @@
       </div>
     </div>
 
-    <!-- My Products -->
-    <div class="mt-8 bg-white rounded-lg shadow-md p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-semibold text-gray-900">Mis Productos</h2>
-        <router-link
-          to="/post-product"
-          class="btn-primary"
-        >
-          <Plus class="w-4 h-4" />
-          Nuevo Producto
-        </router-link>
+    <!-- Tabs for user content -->
+    <div class="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="border-b border-gray-200">
+        <nav class="flex">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            @click="activeTab = tab.id"
+            :class="[
+              'px-6 py-3 text-sm font-medium border-b-2 transition-colors',
+              activeTab === tab.id
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            ]"
+          >
+            <component :is="tab.icon" class="w-4 h-4 mr-2 inline" />
+            {{ tab.name }}
+          </button>
+        </nav>
       </div>
 
-      <div v-if="userProducts.length === 0" class="text-center py-8">
-        <Package class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">No tienes productos publicados</h3>
-        <p class="text-gray-600 mb-4">Comienza a vender publicando tu primer producto</p>
-        <router-link
-          to="/post-product"
-          class="btn-primary"
-        >
-          <Plus class="w-4 h-4" />
-          Publicar Producto
-        </router-link>
-      </div>
+      <div class="p-6">
+        <!-- Products Tab -->
+        <div v-if="activeTab === 'products'">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Mis Productos</h2>
+            <router-link
+              to="/post-product"
+              class="btn-primary"
+            >
+              <Plus class="w-4 h-4" />
+              Nuevo Producto
+            </router-link>
+          </div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="product in userProducts"
-          :key="product.id"
-          class="border border-gray-200 rounded-lg p-4"
-        >
-          <img
-            :src="product.images?.[0]"
-            :alt="product.title"
-            class="w-full h-48 object-cover"
-            v-if="product.images?.[0]"
-          />
-          <div v-else class="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-            <ImageOff class="w-8 h-8 mb-2" />
-            <span class="text-sm">Sin imagen</span>
-          </div>
-          <h3 class="font-semibold text-gray-900 mb-1">{{ product.title }}</h3>
-          <p class="text-primary-600 font-bold mb-2">${{ formatPrice(product.price) }}</p>
-          <div class="flex items-center gap-2 text-sm text-gray-600 mb-3">
-            <span :class="statusClass(product.status)">{{ statusText(product.status) }}</span>
-          </div>
-          <div class="flex gap-2">
-            <button
-              @click="editProduct(product.id)"
-              class="flex-1 text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md transition-colors"
+          <div v-if="userProducts.length === 0" class="text-center py-8">
+            <Package class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No tienes productos publicados</h3>
+            <p class="text-gray-600 mb-4">Comienza a vender publicando tu primer producto</p>
+            <router-link
+              to="/post-product"
+              class="btn-primary"
             >
-              Editar
-            </button>
-            <button
-              @click="deleteProduct(product.id)"
-              class="flex-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md transition-colors"
+              <Plus class="w-4 h-4" />
+              Publicar Producto
+            </router-link>
+          </div>
+
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              v-for="product in userProducts"
+              :key="product.id"
+              class="border border-gray-200 rounded-lg p-4"
             >
-              Eliminar
-            </button>
+              <div v-if="!product.images?.[0]" class="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+                <ImageOff class="w-8 h-8 mb-2" />
+                <span class="text-sm">Sin imagen</span>
+              </div>
+              <img
+                v-else
+                :src="product.images[0]"
+                :alt="product.title"
+                class="w-full h-48 object-cover rounded-lg"
+              />
+              <h3 class="font-semibold text-gray-900 mb-1 mt-3">{{ product.title }}</h3>
+              <p class="text-primary-600 font-bold mb-2">${{ formatPrice(product.price) }}</p>
+              <div class="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                <span :class="statusClass(product.status)">{{ statusText(product.status) }}</span>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  @click="editProduct(product.id)"
+                  class="flex-1 text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md transition-colors"
+                >
+                  Editar
+                </button>
+                <button
+                  @click="deleteProduct(product.id)"
+                  class="flex-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md transition-colors"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Properties Tab -->
+        <div v-if="activeTab === 'properties'">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Mis Propiedades</h2>
+            <router-link
+              to="/post-property"
+              class="btn-primary"
+            >
+              <Plus class="w-4 h-4" />
+              Nueva Propiedad
+            </router-link>
+          </div>
+
+          <div v-if="userProperties.length === 0" class="text-center py-8">
+            <Home class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No tienes propiedades publicadas</h3>
+            <p class="text-gray-600 mb-4">Comienza a ofrecer propiedades publicando tu primera propiedad</p>
+            <router-link
+              to="/post-property"
+              class="btn-primary"
+            >
+              <Plus class="w-4 h-4" />
+              Publicar Propiedad
+            </router-link>
+          </div>
+
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              v-for="property in userProperties"
+              :key="property.id"
+              class="border border-gray-200 rounded-lg p-4"
+            >
+              <div v-if="!property.images?.[0]" class="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+                <ImageOff class="w-8 h-8 mb-2" />
+                <span class="text-sm">Sin imagen</span>
+              </div>
+              <img
+                v-else
+                :src="property.images[0]"
+                :alt="property.title"
+                class="w-full h-48 object-cover rounded-lg"
+              />
+              <h3 class="font-semibold text-gray-900 mb-1 mt-3">{{ property.title }}</h3>
+              <p class="text-primary-600 font-bold mb-2">${{ formatPrice(property.price) }}</p>
+              <div class="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                <span :class="statusClass(property.status)">{{ statusText(property.status) }}</span>
+                <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
+                  {{ property.transaction_type === 'venta' ? 'Venta' : 'Alquiler' }}
+                </span>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  @click="editProperty(property.id)"
+                  class="flex-1 text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md transition-colors"
+                >
+                  Editar
+                </button>
+                <button
+                  @click="deleteProperty(property.id)"
+                  class="flex-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md transition-colors"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Services Tab -->
+        <div v-if="activeTab === 'services'">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Mis Servicios</h2>
+            <router-link
+              to="/post-service"
+              class="btn-primary"
+            >
+              <Plus class="w-4 h-4" />
+              Nuevo Servicio
+            </router-link>
+          </div>
+
+          <div v-if="userServices.length === 0" class="text-center py-8">
+            <Wrench class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No tienes servicios publicados</h3>
+            <p class="text-gray-600 mb-4">Comienza a ofrecer servicios publicando tu primer servicio</p>
+            <router-link
+              to="/post-service"
+              class="btn-primary"
+            >
+              <Plus class="w-4 h-4" />
+              Publicar Servicio
+            </router-link>
+          </div>
+
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              v-for="service in userServices"
+              :key="service.id"
+              class="border border-gray-200 rounded-lg p-4"
+            >
+              <div v-if="!service.images?.[0]" class="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+                <ImageOff class="w-8 h-8 mb-2" />
+                <span class="text-sm">Sin imagen</span>
+              </div>
+              <img
+                v-else
+                :src="service.images[0]"
+                :alt="service.title"
+                class="w-full h-48 object-cover rounded-lg"
+              />
+              <h3 class="font-semibold text-gray-900 mb-1 mt-3">{{ service.title }}</h3>
+              <p class="text-primary-600 font-bold mb-2">
+                Desde ${{ formatPrice(service.price_from) }}
+              </p>
+              <div class="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                <span :class="statusClass(service.status)">{{ statusText(service.status) }}</span>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  @click="editService(service.id)"
+                  class="flex-1 text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md transition-colors"
+                >
+                  Editar
+                </button>
+                <button
+                  @click="deleteService(service.id)"
+                  class="flex-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md transition-colors"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -238,7 +429,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  User, Package, ShoppingCart, Star, Plus, LogOut, Loader2, ImageOff 
+  User, Package, ShoppingCart, Star, Plus, LogOut, Loader2, ImageOff, Home, Wrench 
 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { useProducts } from '../composables/useProducts'
@@ -248,12 +439,23 @@ const router = useRouter()
 const { profile, loading, updateProfile, signOut } = useAuth()
 const { deleteProduct: deleteProductFromStore } = useProducts()
 
+const activeTab = ref('products')
 const userProducts = ref<any[]>([])
+const userProperties = ref<any[]>([])
+const userServices = ref<any[]>([])
 const userStats = ref({
   products: 0,
+  properties: 0,
+  services: 0,
   sold: 0,
   rating: 4.8
 })
+
+const tabs = [
+  { id: 'products', name: 'Productos', icon: Package },
+  { id: 'properties', name: 'Propiedades', icon: Home },
+  { id: 'services', name: 'Servicios', icon: Wrench }
+]
 
 const form = reactive({
   full_name: '',
@@ -318,6 +520,7 @@ const statusClass = (status: string) => {
     case 'active':
       return 'text-green-600 bg-green-100 px-2 py-1 rounded-full'
     case 'sold':
+    case 'rented':
       return 'text-blue-600 bg-blue-100 px-2 py-1 rounded-full'
     case 'inactive':
       return 'text-gray-600 bg-gray-100 px-2 py-1 rounded-full'
@@ -332,6 +535,8 @@ const statusText = (status: string) => {
       return 'Activo'
     case 'sold':
       return 'Vendido'
+    case 'rented':
+      return 'Alquilado'
     case 'inactive':
       return 'Inactivo'
     default:
@@ -352,10 +557,148 @@ const editProduct = (productId: string) => {
   router.push(`/product/${productId}/edit`)
 }
 
+const editProperty = (propertyId: string) => {
+  router.push(`/property/${propertyId}/edit`)
+}
+
+const editService = (serviceId: string) => {
+  router.push(`/service/${serviceId}/edit`)
+}
+
 const deleteProduct = async (productId: string) => {
   if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
     await deleteProductFromStore(productId)
     await loadUserProducts()
+  }
+}
+
+const deleteProperty = async (propertyId: string) => {
+  if (confirm('¿Estás seguro de que quieres eliminar esta propiedad?')) {
+    try {
+      // Get the property to access its images
+      const { data: property, error: fetchError } = await supabase
+        .from('properties')
+        .select('images')
+        .eq('id', propertyId)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Delete the property from the database
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', propertyId)
+
+      if (error) throw error
+
+      // Delete associated images from storage if they exist
+      if (property?.images?.length > 0) {
+        try {
+          const imageUrls = property.images as string[]
+          const pathsToDelete = imageUrls.map(url => {
+            try {
+              if (url.startsWith('http')) {
+                const urlObj = new URL(url)
+                const pathParts = urlObj.pathname.split('/')
+                const bucketIndex = pathParts.indexOf('property-images')
+                if (bucketIndex !== -1) {
+                  return pathParts.slice(bucketIndex + 1).join('/')
+                }
+                const match = urlObj.pathname.match(/property-images\/(.+)$/)
+                return match ? match[1] : ''
+              } else {
+                return url.replace(/^property-images\//, '')
+              }
+            } catch (e) {
+              console.error('Error processing image URL:', url, e)
+              return ''
+            }
+          }).filter(Boolean)
+
+          if (pathsToDelete.length > 0) {
+            const { error: storageError } = await supabase.storage
+              .from('property-images')
+              .remove(pathsToDelete)
+
+            if (storageError) {
+              console.error('Error deleting images from storage:', storageError)
+            }
+          }
+        } catch (e) {
+          console.error('Error during image deletion:', e)
+        }
+      }
+
+      await loadUserProperties()
+    } catch (error: any) {
+      console.error('Error deleting property:', error)
+    }
+  }
+}
+
+const deleteService = async (serviceId: string) => {
+  if (confirm('¿Estás seguro de que quieres eliminar este servicio?')) {
+    try {
+      // Get the service to access its images
+      const { data: service, error: fetchError } = await supabase
+        .from('services')
+        .select('images')
+        .eq('id', serviceId)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Delete the service from the database
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', serviceId)
+
+      if (error) throw error
+
+      // Delete associated images from storage if they exist
+      if (service?.images?.length > 0) {
+        try {
+          const imageUrls = service.images as string[]
+          const pathsToDelete = imageUrls.map(url => {
+            try {
+              if (url.startsWith('http')) {
+                const urlObj = new URL(url)
+                const pathParts = urlObj.pathname.split('/')
+                const bucketIndex = pathParts.indexOf('service-images')
+                if (bucketIndex !== -1) {
+                  return pathParts.slice(bucketIndex + 1).join('/')
+                }
+                const match = urlObj.pathname.match(/service-images\/(.+)$/)
+                return match ? match[1] : ''
+              } else {
+                return url.replace(/^service-images\//, '')
+              }
+            } catch (e) {
+              console.error('Error processing image URL:', url, e)
+              return ''
+            }
+          }).filter(Boolean)
+
+          if (pathsToDelete.length > 0) {
+            const { error: storageError } = await supabase.storage
+              .from('service-images')
+              .remove(pathsToDelete)
+
+            if (storageError) {
+              console.error('Error deleting images from storage:', storageError)
+            }
+          }
+        } catch (e) {
+          console.error('Error during image deletion:', e)
+        }
+      }
+
+      await loadUserServices()
+    } catch (error: any) {
+      console.error('Error deleting service:', error)
+    }
   }
 }
 
@@ -379,6 +722,44 @@ const loadUserProducts = async () => {
   }
 }
 
+const loadUserProperties = async () => {
+  if (!profile.value) return
+
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('*')
+      .eq('user_id', profile.value.id)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    userProperties.value = data || []
+    userStats.value.properties = data?.length || 0
+  } catch (error) {
+    console.error('Error loading user properties:', error)
+  }
+}
+
+const loadUserServices = async () => {
+  if (!profile.value) return
+
+  try {
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .eq('user_id', profile.value.id)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    userServices.value = data || []
+    userStats.value.services = data?.length || 0
+  } catch (error) {
+    console.error('Error loading user services:', error)
+  }
+}
+
 onMounted(async () => {
   if (profile.value) {
     form.full_name = profile.value.full_name || ''
@@ -386,7 +767,11 @@ onMounted(async () => {
     form.phone = profile.value.phone || ''
     form.location = profile.value.location || ''
     
-    await loadUserProducts()
+    await Promise.all([
+      loadUserProducts(),
+      loadUserProperties(),
+      loadUserServices()
+    ])
   }
 })
 </script>
