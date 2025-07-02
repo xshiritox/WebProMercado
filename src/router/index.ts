@@ -6,10 +6,14 @@ import ProfilePage from '../pages/ProfilePage.vue'
 import ProductsPage from '../pages/ProductsPage.vue'
 import ProductDetailPage from '../pages/ProductDetailPage.vue'
 import PostProductPage from '../pages/PostProductPage.vue'
+import EditProductPage from '../pages/EditProductPage.vue'
 import PropertiesPage from '../pages/PropertiesPage.vue'
+import PropertyDetailPage from '../pages/PropertyDetailPage.vue'
 import PostPropertyPage from '../pages/PostPropertyPage.vue'
+import EditPropertyPage from '../pages/EditPropertyPage.vue'
 import ServicesPage from '../pages/ServicesPage.vue'
 import PostServicePage from '../pages/PostServicePage.vue'
+import EditServicePage from '../pages/EditServicePage.vue'
 import AdminPage from '../pages/AdminPage.vue'
 import NotFoundPage from '../pages/NotFoundPage.vue'
 
@@ -46,6 +50,12 @@ export const routes: RouteRecordRaw[] = [
     component: ProductDetailPage
   },
   {
+    path: '/product/:id/edit',
+    name: 'edit-product',
+    component: EditProductPage,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/post-product',
     name: 'post-product',
     component: PostProductPage,
@@ -57,6 +67,17 @@ export const routes: RouteRecordRaw[] = [
     component: PropertiesPage
   },
   {
+    path: '/property/:id',
+    name: 'property-detail',
+    component: PropertyDetailPage
+  },
+  {
+    path: '/property/:id/edit',
+    name: 'edit-property',
+    component: EditPropertyPage,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/post-property',
     name: 'post-property',
     component: PostPropertyPage,
@@ -66,6 +87,12 @@ export const routes: RouteRecordRaw[] = [
     path: '/services',
     name: 'services',
     component: ServicesPage
+  },
+  {
+    path: '/service/:id/edit',
+    name: 'edit-service',
+    component: EditServicePage,
+    meta: { requiresAuth: true }
   },
   {
     path: '/post-service',
