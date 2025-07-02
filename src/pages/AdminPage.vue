@@ -136,10 +136,14 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span
+                      v-if="user.badge"
                       :class="getBadgeClass(user.badge)"
                       class="px-2 py-1 rounded-full text-xs font-medium text-white"
                     >
                       {{ getBadgeText(user.badge) }}
+                    </span>
+                    <span v-else class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                      Sin rol
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -387,7 +391,7 @@ const getBadgeText = (badge: string) => {
     case 'admin':
       return 'Admin'
     default:
-      return 'Usuario'
+      return 'Sin rol'
   }
 }
 

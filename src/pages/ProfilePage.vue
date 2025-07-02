@@ -18,6 +18,9 @@
               >
                 {{ badgeText }}
               </span>
+              <span v-else class="px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20 text-white">
+                Sin rol asignado
+              </span>
               <span class="text-primary-100 text-sm">
                 Miembro desde {{ formatDate(profile?.created_at) }}
               </span>
@@ -295,7 +298,7 @@ const badgeText = computed(() => {
     case 'admin':
       return 'Admin'
     default:
-      return ''
+      return 'Sin rol'
   }
 })
 

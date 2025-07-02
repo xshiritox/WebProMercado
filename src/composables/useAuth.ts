@@ -15,8 +15,8 @@ export const useAuth = () => {
   const isModerator = computed(() => profile.value?.badge === 'moderador' || profile.value?.badge === 'admin')
   const isVip = computed(() => profile.value?.badge === 'vip')
   const isColaborador = computed(() => profile.value?.badge === 'colaborador')
-  const isNuevo = computed(() => profile.value?.badge === 'nuevo' || !profile.value?.badge)
   const isDestacado = computed(() => profile.value?.badge === 'destacado')
+  const hasNoBadge = computed(() => !profile.value?.badge)
 
   const signUp = async (email: string, password: string, fullName: string) => {
     loading.value = true
@@ -95,7 +95,7 @@ export const useAuth = () => {
             id: data.user.id,
             email: data.user.email,
             full_name: trimmedFullName,
-            badge: 'nuevo',
+            badge: null, // No asignar ningún rol por defecto
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             verified: false
@@ -374,8 +374,8 @@ export const useAuth = () => {
     isModerator,
     isVip,
     isColaborador,
-    isNuevo,
     isDestacado,
+    hasNoBadge,
     signUp: async (email: string, password: string, fullName: string) => {
       // Primero verificamos y limpiamos usuarios huérfanos
       await checkAndCleanOrphanedUser(email)
