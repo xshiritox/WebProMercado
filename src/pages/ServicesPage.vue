@@ -1,26 +1,5 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 mb-4">Servicios Profesionales</h1>
-      <p class="text-gray-600">Encuentra profesionales y servicios especializados en tu área</p>
-    </div>
-
-    <!-- Service Categories -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-      <div
-        v-for="category in serviceCategories"
-        :key="category.name"
-        class="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow cursor-pointer"
-        @click="filterByCategory(category.name)"
-      >
-        <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-          <component :is="category.icon" class="w-6 h-6 text-primary-600" />
-        </div>
-        <h3 class="font-semibold text-gray-900 mb-2">{{ category.name }}</h3>
-        <p class="text-sm text-gray-600">{{ category.count }}+ profesionales</p>
-      </div>
-    </div>
-
     <!-- Services Grid -->
     <div class="mb-12">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Servicios Disponibles</h2>
@@ -182,44 +161,6 @@ const loadingServices = ref(false)
 const services = ref<any[]>([])
 const selectedCategory = ref('')
 
-const serviceCategories = ref([
-  { name: 'Reparaciones', icon: Wrench, count: 0 },
-  { name: 'Diseño', icon: Palette, count: 0 },
-  { name: 'Fotografía', icon: Camera, count: 0 },
-  { name: 'Automotriz', icon: Car, count: 0 },
-  { name: 'Hogar', icon: Home, count: 0 },
-  { name: 'Negocios', icon: Briefcase, count: 0 },
-  { name: 'Salud', icon: Heart, count: 0 },
-  { name: 'Educación', icon: GraduationCap, count: 0 }
-])
-
-const loadServiceCounts = async () => {
-  try {
-    // Primero obtenemos todos los servicios agrupados por categoría
-    const { data, error } = await supabase
-      .from('services')
-      .select('category')
-      .eq('status', 'active')
-      .not('category', 'is', null)
-
-    if (error) throw error
-
-    // Contamos cuántos servicios hay por categoría
-    const counts: Record<string, number> = {}
-    data?.forEach((item: any) => {
-      counts[item.category] = (counts[item.category] || 0) + 1
-    })
-
-    // Actualizamos los contadores en las categorías
-    serviceCategories.value = serviceCategories.value.map(cat => ({
-      ...cat,
-      count: counts[cat.name] || 0
-    }))
-  } catch (error) {
-    console.error('Error al cargar el conteo de servicios por categoría:', error)
-  }
-}
-
 const loadServices = async () => {
   loadingServices.value = true
   try {
@@ -247,11 +188,6 @@ const loadServices = async () => {
   }
 }
 
-const filterByCategory = (category: string) => {
-  selectedCategory.value = selectedCategory.value === category ? '' : category
-  loadServices()
-}
-
 const getPriceType = (type: string) => {
   const types: Record<string, string> = {
     fixed: 'Precio fijo',
@@ -271,9 +207,8 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
-// Cargar los servicios y contadores al montar el componente
+// Cargar los servicios al montar el componente
 onMounted(() => {
-  loadServiceCounts()
   loadServices()
   
   // Verificar si hay una categoría en la URL
@@ -282,11 +217,6 @@ onMounted(() => {
     loadServices()
   }
 })
-
-// Observar cambios en la ruta para actualizar los filtros
-// watch(() => route.query, (newQuery) => {
-//   if (newQuery.category) {
-//     selectedCategory.value = newQuery.category as string
 //   } else {
 //     selectedCategory.value = ''
 //   }
