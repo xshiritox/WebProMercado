@@ -205,6 +205,14 @@
               <Mail class="w-4 h-4" />
               Enviar Email
             </button>
+            
+            <button
+              @click="showReportModal = true"
+              class="w-full text-red-600 hover:bg-red-50 border border-red-200 font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center mt-2"
+            >
+              <Flag class="w-4 h-4" />
+              Reportar esta propiedad
+            </button>
           </div>
         </div>
       </div>
@@ -222,6 +230,17 @@
         <p class="text-gray-600">No hay propiedades relacionadas disponibles</p>
       </div>
     </div>
+    
+    <!-- Report Modal -->
+    <ReportModal
+      v-if="property"
+      :is-open="showReportModal"
+      type="property"
+      :target-id="property.id"
+      :user-id="property.user_id"
+      @close="showReportModal = false"
+      @reported="handleReported"
+    />
   </div>
 </template>
 
@@ -229,8 +248,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { 
-  Star, MapPin, User, Phone, MessageCircle, Mail, ChevronRight, AlertCircle, ImageOff 
+  Star, MapPin, User, Phone, MessageCircle, Mail, ChevronRight, 
+  AlertCircle, ImageOff, Flag
 } from 'lucide-vue-next'
+import ReportModal from '@/components/ReportModal.vue'
 import { supabase } from '../lib/supabase'
 
 const route = useRoute()
@@ -238,7 +259,8 @@ const route = useRoute()
 const property = ref<any>(null)
 const relatedProperties = ref<any[]>([])
 const loading = ref(true)
-const currentImage = ref<string>('')
+const currentImage = ref('')
+const showReportModal = ref(false)
 
 const transactionTypeClass = computed(() => {
   return property.value?.transaction_type === 'venta' ? 'bg-green-500' : 'bg-blue-500'
@@ -323,6 +345,11 @@ const sendEmail = () => {
     const body = `Hola,\n\nEstoy interesado en tu propiedad "${property.value.title}" publicada en PubliNet.\n\nPor favor, contáctame para más información.\n\nGracias.`
     window.open(`mailto:${property.value.profiles.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
   }
+}
+
+const handleReported = () => {
+  showReportModal.value = false
+  // Aquí podrías mostrar un mensaje de éxito si lo deseas
 }
 
 const getProperty = async (id: string) => {

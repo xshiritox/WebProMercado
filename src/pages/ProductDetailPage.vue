@@ -193,6 +193,14 @@
               <Mail class="w-4 h-4" />
               Enviar Email
             </button>
+            
+            <button
+              @click="showReportModal = true"
+              class="w-full text-red-600 hover:bg-red-50 border border-red-200 font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center mt-2"
+            >
+              <Flag class="w-4 h-4" />
+              Reportar este producto
+            </button>
           </div>
         </div>
       </div>
@@ -214,6 +222,17 @@
         <p class="text-gray-600">No hay productos relacionados disponibles</p>
       </div>
     </div>
+    
+    <!-- Report Modal -->
+    <ReportModal
+      v-if="product"
+      :is-open="showReportModal"
+      type="product"
+      :target-id="product.id"
+      :user-id="product.user_id"
+      @close="showReportModal = false"
+      @reported="handleReported"
+    />
   </div>
 </template>
 
@@ -221,8 +240,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { 
-  Star, MapPin, User, Phone, MessageCircle, Mail, ChevronRight, AlertCircle, ImageOff 
+  Star, MapPin, User, Phone, MessageCircle, Mail, ChevronRight, 
+  AlertCircle, ImageOff, Flag 
 } from 'lucide-vue-next'
+import ReportModal from '@/components/ReportModal.vue'
 import ProductCard from '../components/ProductCard.vue'
 import { useProducts } from '../composables/useProducts'
 
@@ -232,7 +253,8 @@ const { getProduct } = useProducts()
 const product = ref<any>(null)
 const relatedProducts = ref<any[]>([])
 const loading = ref(true)
-const currentImage = ref<string>('')
+const currentImage = ref('')
+const showReportModal = ref(false)
 
 const conditionClass = computed(() => {
   switch (product.value?.condition) {
@@ -318,10 +340,13 @@ const openWhatsApp = () => {
 
 const sendEmail = () => {
   if (product.value?.profiles?.email) {
-    const subject = `Interés en: ${product.value.title}`
-    const body = `Hola,\n\nEstoy interesado en tu producto "${product.value.title}" publicado en PubliNet.\n\nPor favor, contáctame para más información.\n\nGracias.`
-    window.open(`mailto:${product.value.profiles.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+    window.location.href = `mailto:${product.value.profiles.email}?subject=Consulta sobre: ${encodeURIComponent(product.value.title)}`
   }
+}
+
+const handleReported = () => {
+  showReportModal.value = false
+  // Aquí podrías mostrar un mensaje de éxito si lo deseas
 }
 
 onMounted(async () => {

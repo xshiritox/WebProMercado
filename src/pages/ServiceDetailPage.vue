@@ -107,10 +107,18 @@
           
           <button 
             @click="contactService"
-            class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+            class="w-full btn-primary justify-center"
           >
-            <MessageCircle class="w-5 h-5 mr-2" />
-            Contactar al proveedor
+            <MessageCircle class="w-4 h-4 mr-2" />
+            Contactar
+          </button>
+            
+          <button
+            @click="showReportModal = true"
+            class="w-full text-red-600 hover:bg-red-50 border border-red-200 font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center mt-2"
+          >
+            <Flag class="w-4 h-4" />
+            Reportar este servicio
           </button>
         </div>
 
@@ -145,18 +153,30 @@
         </div>
       </div>
     </div>
+    
+    <!-- Report Modal -->
+    <ReportModal
+      v-if="service"
+      :is-open="showReportModal"
+      type="service"
+      :target-id="service.id"
+      :user-id="service.user_id"
+      @close="showReportModal = false"
+      @reported="handleReported"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { 
+  AlertCircle, RefreshCw, Wrench, Calendar, Clock, MapPin, 
+  MessageCircle, Flag, Star, Check
+} from 'lucide-vue-next'
+import ReportModal from '@/components/ReportModal.vue'
 import { supabase } from '../lib/supabase'
 import { useToast } from 'vue-toastification'
-import { 
-  Wrench, User, Star, MapPin, Calendar, Clock, MessageCircle, 
-  Check, AlertCircle, RefreshCw 
-} from 'lucide-vue-next'
 
 const route = useRoute()
 const toast = useToast()
@@ -164,6 +184,7 @@ const toast = useToast()
 const service = ref<any>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+const showReportModal = ref(false)
 
 const daysOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
@@ -263,6 +284,11 @@ const contactService = () => {
   
   // Abrir WhatsApp
   window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank')
+}
+
+const handleReported = () => {
+  showReportModal.value = false
+  // Aquí podrías mostrar un mensaje de éxito si lo deseas
 }
 
 onMounted(() => {
