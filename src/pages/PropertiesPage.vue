@@ -14,10 +14,12 @@
           <select
             v-model="filters.transaction_type"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            @change="() => setFilters({ transaction_type: filters.transaction_type })"
           >
             <option value="">Todos</option>
-            <option value="venta">Venta</option>
-            <option value="alquiler">Alquiler</option>
+            <option v-for="type in transactionTypes" :key="type.value" :value="type.value">
+              {{ type.label }}
+            </option>
           </select>
         </div>
 
@@ -27,13 +29,12 @@
           <select
             v-model="filters.property_type"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            @change="() => setFilters({ property_type: filters.property_type })"
           >
             <option value="">Todas</option>
-            <option value="casa">Casa</option>
-            <option value="apartamento">Apartamento</option>
-            <option value="local">Local</option>
-            <option value="oficina">Oficina</option>
-            <option value="lote">Lote</option>
+            <option v-for="type in propertyTypes" :key="type" :value="type.toLowerCase()">
+              {{ type }}
+            </option>
           </select>
         </div>
 
@@ -43,6 +44,7 @@
           <select
             v-model="filters.location"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            @change="() => setFilters({ location: filters.location })"
           >
             <option value="">Todas las ciudades</option>
             <option v-for="city in colombianCities" :key="city" :value="city">
@@ -52,33 +54,37 @@
         </div>
 
         <!-- Price Range -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Precio</label>
-          <select
-            v-model="filters.price_range"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          >
-            <option value="">Cualquier precio</option>
-            <option value="0-200000000">Hasta $200M</option>
-            <option value="200000000-500000000">$200M - $500M</option>
-            <option value="500000000-1000000000">$500M - $1,000M</option>
-            <option value="1000000000+">Más de $1,000M</option>
-          </select>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+          <div class="flex items-center gap-2">
+            <input
+              v-model.number="filters.min_price"
+              type="number"
+              placeholder="Mínimo"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+            />
+            <span class="text-gray-500">-</span>
+            <input
+              v-model.number="filters.max_price"
+              type="number"
+              placeholder="Máximo"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
         </div>
 
         <!-- Bedrooms -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Habitaciones</label>
           <select
-            v-model="filters.bedrooms"
+            v-model.number="filters.bedrooms"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
-            <option value="">Cualquier cantidad</option>
-            <option value="1">1+</option>
-            <option value="2">2+</option>
-            <option value="3">3+</option>
-            <option value="4">4+</option>
-            <option value="5">5+</option>
+            <option :value="null">Cualquier cantidad</option>
+            <option v-for="n in 5" :key="n" :value="n">
+              {{ n }}+ {{ n === 1 ? 'dormitorio' : 'dormitorios' }}
+            </option>
+            <option value="6">6+ dormitorios</option>
           </select>
         </div>
       </div>
@@ -128,9 +134,7 @@
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
-        v-for="property in filteredProperties"
-        :key="property.id"
-        class="bg-white rounded-lg shadow-md overflow-hidden card-hover cursor-pointer"
+        v-for="property in filteredProperties" :key="property.id" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
         @click="viewProperty(property.id)"
       >
         <!-- Property Image -->
@@ -209,112 +213,70 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { 
-  Plus, Home, Star, MapPin, Clock, Bed, Bath, Square, ImageOff 
-} from 'lucide-vue-next'
+import { useProperties } from '../composables/useProperties'
+import { Plus, MapPin, Bed, Bath, Star, Home, ImageOff, Clock, Square } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
-import { supabase } from '../lib/supabase'
 
-const router = useRouter()
 const { isAuthenticated } = useAuth()
 
-const properties = ref<any[]>([])
-const loading = ref(true)
-
-const filters = reactive({
-  transaction_type: '',
-  property_type: '',
-  location: '',
-  price_range: '',
-  bedrooms: ''
-})
+const {
+  filteredProperties,
+  loading,
+  filters,
+  viewProperty,
+  propertyTypes,
+  transactionTypes,
+  setFilters
+} = useProperties()
 
 const colombianCities = [
-  'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta', 'Granada',
-  'Bucaramanga', 'Pereira', 'Santa Marta', 'Ibagué', 'Pasto', 'Manizales',
-  'Neiva', 'Soledad', 'Armenia', 'Villavicencio', 'Montería', 'Valledupar'
+  'Bogotá',
+  'Medellín',
+  'Cali',
+  'Barranquilla',
+  'Cartagena',
+  'Cúcuta',
+  'Bucaramanga',
+  'Pereira',
+  'Santa Marta',
+  'Ibagué',
+  'Pasto',
+  'Manizales',
+  'Neiva',
+  'Villavicencio',
+  'Valledupar',
+  'Montería',
+  'Sincelejo',
+  'Popayán',
+  'Tunja',
+  'Riohacha'
 ]
 
-const filteredProperties = computed(() => {
-  let filtered = properties.value
 
-  if (filters.transaction_type) {
-    filtered = filtered.filter(p => p.transaction_type === filters.transaction_type)
-  }
-
-  if (filters.property_type) {
-    filtered = filtered.filter(p => p.property_type === filters.property_type)
-  }
-
-  if (filters.location) {
-    filtered = filtered.filter(p => p.location === filters.location)
-  }
-
-  if (filters.bedrooms) {
-    const minBedrooms = parseInt(filters.bedrooms)
-    filtered = filtered.filter(p => p.bedrooms >= minBedrooms)
-  }
-
-  return filtered
-})
-
-const transactionTypeClass = (type: string) => {
-  return type === 'venta' ? 'bg-green-500' : 'bg-blue-500'
-}
 
 const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('es-CO').format(price)
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: 0
+  }).format(price)
 }
 
 const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('es-CO', { 
-    day: 'numeric', 
-    month: 'short' 
-  })
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' }
+  return new Date(date).toLocaleDateString('es-CO', options)
 }
 
-const viewProperty = (propertyId: string) => {
-  router.push(`/property/${propertyId}`)
+const transactionTypeClass = (type: string) => {
+  return type === 'Venta' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
 }
-
-const loadProperties = async () => {
-  loading.value = true
-  try {
-    const { data, error } = await supabase
-      .from('properties')
-      .select(`
-        *,
-        profiles:user_id (
-          full_name,
-          avatar_url,
-          badge
-        )
-      `)
-      .eq('status', 'active')
-      .order('featured', { ascending: false })
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-
-    properties.value = data || []
-  } catch (error) {
-    console.error('Error loading properties:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(async () => {
-  await loadProperties()
-})
 </script>
 
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

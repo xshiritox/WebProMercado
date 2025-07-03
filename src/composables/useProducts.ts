@@ -117,7 +117,7 @@ export const useProducts = () => {
       if (error) throw error
 
       toast.success('¡Producto publicado exitosamente!')
-      await getProducts() // Refresh products list
+      await getProducts() // Actualizar lista de productos
       return data
     } catch (error: any) {
       toast.error(error.message || 'Error al publicar el producto')
@@ -140,7 +140,7 @@ export const useProducts = () => {
       if (error) throw error
 
       toast.success('Producto actualizado exitosamente')
-      await getProducts() // Refresh products list
+      await getProducts() // Actualizar lista de productos
       return data
     } catch (error: any) {
       toast.error(error.message || 'Error al actualizar el producto')
@@ -153,7 +153,7 @@ export const useProducts = () => {
   const deleteProduct = async (id: string) => {
     loading.value = true
     try {
-      // First, get the product to access its images
+      // Primero, obtener el producto para acceder a sus imágenes
       const { data: product, error: fetchError } = await supabase
         .from('products')
         .select('images')
@@ -162,7 +162,7 @@ export const useProducts = () => {
 
       if (fetchError) throw fetchError
 
-      // Delete the product from the database
+      // Eliminar el producto de la base de datos
       const { error } = await supabase
         .from('products')
         .delete()
@@ -170,53 +170,53 @@ export const useProducts = () => {
 
       if (error) throw error
 
-      // Delete associated images from storage if they exist
+      // Eliminar las imágenes asociadas del almacenamiento si existen
       if (product?.images?.length > 0) {
         try {
           const imageUrls = product.images as string[]
           const pathsToDelete = imageUrls.map(url => {
             try {
-              // Handle both full URLs and paths
+              // Manejar tanto URLs completas como rutas
               if (url.startsWith('http')) {
                 const urlObj = new URL(url)
-                // Extract the path after the bucket name
+                // Extraer la ruta después del nombre del bucket
                 const pathParts = urlObj.pathname.split('/')
                 const bucketIndex = pathParts.indexOf('product-images')
                 if (bucketIndex !== -1) {
                   return pathParts.slice(bucketIndex + 1).join('/')
                 }
-                // Fallback to the old method if the URL format is different
+                // Método alternativo si el formato de la URL es diferente
                 const match = urlObj.pathname.match(/product-images\/(.+)$/)
                 return match ? match[1] : ''
               } else {
-                // If it's already a path, just return it
+                // Si ya es una ruta, simplemente devolverla
                 return url.replace(/^product-images\//, '')
               }
             } catch (e) {
-              console.error('Error processing image URL:', url, e)
+              console.error('Error procesando la URL de la imagen:', url, e)
               return ''
             }
-          }).filter(Boolean) // Remove any empty strings
+          }).filter(Boolean) // Eliminar cadenas vacías
 
           if (pathsToDelete.length > 0) {
-            // Delete each image from storage
+            // Eliminar cada imagen del almacenamiento
             const { error: storageError } = await supabase.storage
               .from('product-images')
               .remove(pathsToDelete)
 
             if (storageError) {
               console.error('Error deleting images from storage:', storageError)
-              // Don't throw here as the product was already deleted
+              // No lanzar error aquí ya que el producto ya fue eliminado
             }
           }
         } catch (e) {
           console.error('Error during image deletion:', e)
-          // Continue even if image deletion fails
+          // Continuar incluso si falla la eliminación de imágenes
         }
       }
 
       toast.success('Producto y sus imágenes eliminados exitosamente')
-      await getProducts() // Refresh products list
+      await getProducts() // Actualizar lista de productos
       return true
     } catch (error: any) {
       console.error('Error deleting product:', error)
