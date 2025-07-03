@@ -211,7 +211,7 @@ export const useProperties = () => {
       const { data: property, error: fetchError } = await supabase
         .from('properties')
         .select('images')
-        .eq('id', id)
+        .in('id', [id])
         .single()
 
       if (fetchError) throw fetchError
@@ -220,7 +220,7 @@ export const useProperties = () => {
       const { error } = await supabase
         .from('properties')
         .delete()
-        .eq('id', id)
+        .in('id', [id])
 
       if (error) throw error
 

@@ -157,7 +157,7 @@ export const useProducts = () => {
       const { data: product, error: fetchError } = await supabase
         .from('products')
         .select('images')
-        .eq('id', id)
+        .in('id', [id])
         .single()
 
       if (fetchError) throw fetchError
@@ -166,7 +166,7 @@ export const useProducts = () => {
       const { error } = await supabase
         .from('products')
         .delete()
-        .eq('id', id)
+        .in('id', [id])
 
       if (error) throw error
 
