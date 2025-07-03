@@ -151,8 +151,8 @@
           />
           <div class="absolute top-2 left-2">
             <span
-              :class="transactionTypeClass(property.transaction_type)"
               class="px-2 py-1 rounded-full text-xs font-medium text-white"
+              :class="property.transaction_type === 'venta' ? 'bg-green-500' : 'bg-blue-500'"
             >
               {{ property.transaction_type === 'venta' ? 'Venta' : 'Alquiler' }}
             </span>
@@ -163,14 +163,15 @@
               Destacado
             </span>
           </div>
+
         </div>
 
         <!-- Property Info -->
         <div class="p-4">
           <div class="flex items-start justify-between mb-2">
-            <h3 class="font-semibold text-gray-900 truncate">{{ property.title }}</h3>
-            <span class="text-lg font-bold text-primary-600">
-              ${{ formatPrice(property.price) }}
+            <h3 class="font-semibold text-gray-900 truncate flex-1">{{ property.title }}</h3>
+            <span class="text-lg font-bold text-primary-600 ml-2 whitespace-nowrap">
+              {{ formatPrice(property.price) }}
             </span>
           </div>
 
@@ -279,10 +280,6 @@ const formatPrice = (price: number) => {
 const formatDate = (date: string) => {
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' }
   return new Date(date).toLocaleDateString('es-CO', options)
-}
-
-const transactionTypeClass = (type: string) => {
-  return type === 'Venta' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
 }
 </script>
 

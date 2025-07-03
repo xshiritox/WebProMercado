@@ -285,7 +285,7 @@
             @click="router.back()"
             class="btn-outline"
           >
-            Cancelar
+            Cancelar 
           </button>
           
           <button

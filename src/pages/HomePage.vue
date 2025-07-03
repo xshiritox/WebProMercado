@@ -32,13 +32,27 @@
           </div>
 
           <!-- CTA Buttons -->
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <div class="flex flex-wrap justify-center gap-4">
             <router-link
               to="/products"
-              class="btn-secondary text-lg px-8 py-3 justify-center"
+              class="btn-secondary text-lg px-6 py-3 justify-center flex-1 sm:flex-none min-w-[200px]"
             >
               <Package class="w-5 h-5" />
               Ver Productos
+            </router-link>
+            <router-link
+              to="/properties"
+              class="btn-secondary text-lg px-6 py-3 justify-center flex-1 sm:flex-none min-w-[200px]"
+            >
+              <Home class="w-5 h-5" />
+              Ver Propiedades
+            </router-link>
+            <router-link
+              to="/services"
+              class="btn-secondary text-lg px-6 py-3 justify-center flex-1 sm:flex-none min-w-[200px]"
+            >
+              <Wrench class="w-5 h-5" />
+              Ver Servicios
             </router-link>
             <router-link
               v-if="!isAuthenticated"

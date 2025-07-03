@@ -150,48 +150,17 @@
                 {{ service.category }}
               </span>
             </div>
-            <div class="flex items-center">
-              <div class="relative w-10 h-10 flex-shrink-0 mr-4">
-                <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden ring-2 ring-white shadow-sm">
-                  <img 
-                    v-if="service.profile?.avatar_url" 
-                    :src="service.profile.avatar_url" 
-                    :alt="service.profile.full_name"
-                    class="w-full h-full object-cover"
-                  >
-                  <User v-else class="w-5 h-5 text-gray-400" />
-                </div>
-                <!-- Badge de verificación para perfiles verificados -->
-                <div v-if="service.profile?.badge === 'verified'" class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
-                  <div class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                    <Check class="w-2.5 h-2.5 text-white" />
-                  </div>
-                </div>
+            <div class="flex items-center justify-between mb-2">
+              <div v-if="service.rating" class="flex items-center">
+                <Star class="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                <span class="text-sm text-gray-600">
+                  {{ service.rating.toFixed(1) }}
+                </span>
               </div>
-              <div class="flex flex-col">
-                <p class="text-sm font-medium text-gray-900">{{ service.profile?.full_name || 'Anónimo' }}</p>
-                
-                <div class="flex items-center space-x-1">
-                  <span 
-                    v-if="service.profile?.badge" 
-                    class="text-xs px-1.5 py-0.5 rounded-full mt-1"
-                    :class="{
-                      'bg-blue-100 text-blue-800': service.profile.badge === 'professional',
-                      'bg-green-100 text-green-800': service.profile.badge === 'business',
-                      'bg-gray-100 text-gray-800': !['professional', 'business'].includes(service.profile.badge)
-                    }"
-                  >
-                    {{ getBadgeName(service.profile.badge) }}
-                  </span>
-                  
-                  <div v-if="service.rating" class="flex items-center ml-1">
-                    <Star class="w-3 h-3 text-yellow-400 fill-current mr-0.5" />
-                    <span class="text-xs text-gray-500">
-                      {{ service.rating.toFixed(1) }}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <div v-else></div>
+              <span class="text-sm text-gray-500">
+                {{ service.location || 'Ubicación no especificada' }}
+              </span>
             </div>
             <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ service.description }}</p>
             <div class="flex items-center justify-between">
@@ -288,7 +257,6 @@
 </template>
 
 <script setup lang="ts">
-import { Check, User } from 'lucide-vue-next'
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { 
@@ -373,15 +341,7 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
-const getBadgeName = (badge: string) => {
-  const badges: Record<string, string> = {
-    'professional': 'Profesional',
-    'business': 'Empresa',
-    'verified': 'Verificado',
-    'premium': 'Premium'
-  }
-  return badges[badge] || badge
-}
+
 
 
 
