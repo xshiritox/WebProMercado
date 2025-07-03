@@ -12,6 +12,7 @@ import PropertyDetailPage from '../pages/PropertyDetailPage.vue'
 import PostPropertyPage from '../pages/PostPropertyPage.vue'
 import EditPropertyPage from '../pages/EditPropertyPage.vue'
 import ServicesPage from '../pages/ServicesPage.vue'
+import ServiceDetailPage from '../pages/ServiceDetailPage.vue'
 import PostServicePage from '../pages/PostServicePage.vue'
 import EditServicePage from '../pages/EditServicePage.vue'
 import AdminPage from '../pages/AdminPage.vue'
@@ -87,6 +88,11 @@ export const routes: RouteRecordRaw[] = [
     path: '/services',
     name: 'services',
     component: ServicesPage
+  },
+  {
+    path: '/service/:id',
+    name: 'service-detail',
+    component: ServiceDetailPage
   },
   {
     path: '/service/:id/edit',

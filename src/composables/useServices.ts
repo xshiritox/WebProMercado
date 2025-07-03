@@ -15,46 +15,26 @@ export const useServices = () => {
   const router = useRouter()
 
   const serviceCategories = [
-    { 
-      name: 'Hogar', 
-      icon: 'HomeIcon',
-      description: 'Plomería, electricidad, limpieza y más para tu hogar'
-    },
-    { 
-      name: 'Salud', 
-      icon: 'HeartIcon',
-      description: 'Médicos, terapeutas, entrenadores personales'
-    },
-    { 
-      name: 'Educación', 
-      icon: 'AcademicCapIcon',
-      description: 'Clases particulares, tutorías, cursos'
-    },
-    { 
-      name: 'Tecnología', 
-      icon: 'ComputerDesktopIcon',
-      description: 'Soporte técnico, desarrollo web, diseño gráfico'
-    },
-    { 
-      name: 'Belleza', 
-      icon: 'FaceSmileIcon',
-      description: 'Peluquería, maquillaje, uñas, estética'
-    },
-    { 
-      name: 'Eventos', 
-      icon: 'CalendarIcon',
-      description: 'Fotógrafos, DJs, decoración, catering'
-    },
-    { 
-      name: 'Transporte', 
-      icon: 'TruckIcon',
-      description: 'Mudanzas, envíos, transporte de pasajeros'
-    },
-    { 
-      name: 'Otros', 
-      icon: 'EllipsisHorizontalIcon',
-      description: 'Más servicios profesionales'
-    }
+    'Reparaciones y Mantenimiento',
+    'Limpieza y Aseo',
+    'Construcción y Reformas',
+    'Jardinería y Paisajismo',
+    'Electricidad y Plomería',
+    'Pintura y Decoración',
+    'Tecnología e Informática',
+    'Diseño Gráfico',
+    'Fotografía y Video',
+    'Educación y Tutorías',
+    'Salud y Bienestar',
+    'Belleza y Estética',
+    'Transporte y Mudanzas',
+    'Eventos y Catering',
+    'Consultoría y Negocios',
+    'Traducción e Idiomas',
+    'Música y Arte',
+    'Deportes y Fitness',
+    'Mascotas y Veterinaria',
+    'Otros Servicios'
   ]
 
   const priceTypes = [
@@ -63,6 +43,8 @@ export const useServices = () => {
     { value: 'quote', label: 'A convenir' }
   ]
 
+  const priceRange = ref('')
+
   const filteredServices = computed(() => {
     let filtered = [...services.value]
 
@@ -70,9 +52,9 @@ export const useServices = () => {
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
       filtered = filtered.filter(service =>
-        service.title.toLowerCase().includes(query) ||
-        service.description.toLowerCase().includes(query) ||
-        service.location.toLowerCase().includes(query)
+        service.title?.toLowerCase().includes(query) ||
+        service.description?.toLowerCase().includes(query) ||
+        service.location?.toLowerCase().includes(query)
       )
     }
 
@@ -83,10 +65,19 @@ export const useServices = () => {
       )
     }
 
+    // Aplicar filtro de rango de precios
+    if (priceRange.value) {
+      const [min, max] = priceRange.value.split('-').map(Number)
+      filtered = filtered.filter(service => {
+        const price = service.price_from || 0
+        return price >= min && (!max || price <= max)
+      })
+    }
+
     // Ordenar
     filtered.sort((a, b) => {
-      if (sortBy.value === 'price_asc') return (a.price || 0) - (b.price || 0)
-      if (sortBy.value === 'price_desc') return (b.price || 0) - (a.price || 0)
+      if (sortBy.value === 'price_asc') return (a.price_from || 0) - (b.price_from || 0)
+      if (sortBy.value === 'price_desc') return (b.price_from || 0) - (a.price_from || 0)
       if (sortBy.value === 'rating') return (b.rating || 0) - (a.rating || 0)
       if (sortBy.value === 'created_at') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       return 0
@@ -95,29 +86,94 @@ export const useServices = () => {
     return filtered
   })
 
+  const searchServices = (query: string) => {
+    searchQuery.value = query
+    return filteredServices.value
+  }
+
+  const filterByCategory = (category: string) => {
+    selectedCategory.value = category
+    return filteredServices.value
+  }
+
+  const setSortBy = (sort: string) => {
+    sortBy.value = sort
+    return filteredServices.value
+  }
+
+  const setPriceRange = (range: string) => {
+    priceRange.value = range
+    return filteredServices.value
+  }
+
   const getServices = async () => {
     loading.value = true
     try {
       const { data, error } = await supabase
         .from('services')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            avatar_url,
-            badge,
-            rating
-          )
-        `)
+        .select('*')
         .eq('status', 'active')
         .order('featured', { ascending: false })
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
+      // Si necesitas información del perfil, haz una consulta separada
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map(service => service.user_id).filter(Boolean))]
+        
+        if (userIds.length > 0) {
+          // Hacer la consulta en lotes más pequeños para evitar errores
+          const BATCH_SIZE = 10
+          const profilesMap: Record<string, any> = {}
+          
+          for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
+            const batch = userIds.slice(i, i + BATCH_SIZE)
+            const { data: profilesData, error: profilesError } = await supabase
+              .from('profiles')
+              .select('id, full_name, avatar_url, badge')
+              .in('id', batch)
+            
+            if (profilesError) {
+              console.error('Error fetching profiles batch:', profilesError)
+              continue
+            }
+            
+            if (profilesData) {
+              profilesData.forEach(profile => {
+                profilesMap[profile.id] = profile
+              })
+            }
+          }
+          
+          // Combinar datos de servicios con perfiles
+          data.forEach(service => {
+            if (service.user_id && profilesMap[service.user_id]) {
+              service.profile = profilesMap[service.user_id]
+            } else {
+              service.profile = {
+                full_name: 'Usuario desconocido',
+                avatar_url: null,
+                role: 'user' // Valor por defecto
+              }
+            }
+          })
+        } else {
+          // Si no hay IDs de usuario válidos, establecer perfiles vacíos
+          data.forEach(service => {
+            service.profile = {
+              full_name: 'Usuario desconocido',
+              avatar_url: null,
+              rating: null
+            }
+          })
+        }
+      }
+
       services.value = data || []
       return data
     } catch (error: any) {
+      console.error('Error loading services:', error)
       toast.error(error.message || 'Error al cargar los servicios')
       return []
     } finally {
@@ -267,23 +323,6 @@ export const useServices = () => {
     }
   }
 
-  const searchServices = (query: string) => {
-    searchQuery.value = query
-  }
-
-  const filterByCategory = (category: string) => {
-    selectedCategory.value = selectedCategory.value === category ? '' : category
-  }
-
-  const setSortBy = (sort: string) => {
-    sortBy.value = sort
-  }
-
-  const getPriceType = (type: string) => {
-    const priceType = priceTypes.find(pt => pt.value === type)
-    return priceType ? priceType.label : 'Precio a convenir'
-  }
-
   const loadServiceCounts = async () => {
     try {
       const { data, error } = await supabase
@@ -295,8 +334,8 @@ export const useServices = () => {
 
       // Inicializar contadores en 0 para todas las categorías
       const counts: Record<string, number> = {}
-      serviceCategories.forEach(cat => {
-        counts[cat.name] = 0
+      serviceCategories.forEach(category => {
+        counts[category] = 0
       })
 
       // Actualizar con los datos reales
@@ -322,33 +361,32 @@ export const useServices = () => {
   }
 
   const viewService = (serviceId: string) => {
-    router.push(`/servicios/${serviceId}`)
+    router.push(`/service/${serviceId}`)
+  }
+
+  const getPriceType = (type: string) => {
+    return priceTypes.find(pt => pt.value === type)?.label || type
   }
 
   return {
-    services: computed(() => services.value),
+    services,
+    loading,
     filteredServices,
-    loading: computed(() => loading.value),
-    serviceCategories: computed(() => 
-      serviceCategories.map(cat => ({
-        ...cat,
-        count: serviceCounts.value[cat.name] || 0
-      }))
-    ),
+    serviceCategories,
     priceTypes,
-    searchQuery: computed(() => searchQuery.value),
-    selectedCategory: computed(() => selectedCategory.value),
-    sortBy: computed(() => sortBy.value),
+    searchQuery,
+    selectedCategory,
+    searchServices,
+    filterByCategory,
+    setSortBy,
+    setPriceRange,
     getServices,
     getService,
     createService,
     updateService,
     deleteService,
-    searchServices,
-    filterByCategory,
-    setSortBy,
+    viewService,
     getPriceType,
-    loadServiceCounts,
-    viewService
+    loadServiceCounts
   }
 }

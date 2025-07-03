@@ -458,6 +458,22 @@ const removeImage = (index: number) => {
   form.images.splice(index, 1)
 }
 
+const validatePrice = (price: number | null): number | null => {
+  if (price === null) return null
+  // Convertir a número y redondear a 2 decimales
+  const num = Number(price)
+  if (isNaN(num)) return null
+  
+  // Asegurarse de que el número no exceda los 12 dígitos en total (incluyendo decimales)
+  const maxValue = 9999999999.99 // 10 dígitos enteros + 2 decimales
+  if (Math.abs(num) > maxValue) {
+    toast.error(`El precio no puede ser mayor a ${maxValue.toLocaleString()}`)
+    throw new Error('Precio excede el límite')
+  }
+  
+  return Number(num.toFixed(2))
+}
+
 const handleSubmit = async () => {
   if (!isFormValid.value) {
     toast.error('Por favor completa todos los campos requeridos')
@@ -469,35 +485,49 @@ const handleSubmit = async () => {
     return
   }
 
-  if (form.images.length === 0) {
-    toast.error('Por favor, sube al menos una imagen del servicio')
-    return
-  }
-
+  // Las imágenes son opcionales
+  const hasImages = form.images.length > 0
+  
   try {
+    // Validar y formatear precios
+    const priceFrom = validatePrice(form.price_from)
+    const priceTo = form.price_to !== null ? validatePrice(form.price_to) : null
+    
+    if (priceFrom === null) {
+      toast.error('Por favor ingresa un precio válido')
+      return
+    }
+    
+    if (priceTo !== null && priceTo < priceFrom) {
+      toast.error('El precio máximo no puede ser menor que el precio mínimo')
+      return
+    }
+
     loading.value = true
     
-    // Subir imágenes
-    const imageUrls = []
-    for (const [index, file] of form.images.entries()) {
-      try {
-        toast.info(`Subiendo imagen ${index + 1} de ${form.images.length}...`)
-        
-        // Subir la imagen usando la utilidad de almacenamiento
-        const imageUrl = await uploadFile(
-          'service-images',  // bucket
-          file,              // archivo
-          `services/${profile.value.id}`,  // ruta
-          `service_${Date.now()}_${index}.${file.name.split('.').pop()}`  // nombre de archivo
-        )
-        
-        imageUrls.push(imageUrl)
-        toast.success(`Imagen ${index + 1} subida correctamente`)
-      } catch (error: any) {
-        console.error('Error subiendo imagen:', error)
-        toast.error(`Error al subir la imagen ${index + 1}: ${error.message || 'Error desconocido'}`)
-        loading.value = false
-        return
+    // Subir imágenes si las hay
+    const imageUrls: string[] = []
+    if (hasImages) {
+      for (const [index, file] of form.images.entries()) {
+        try {
+          toast.info(`Subiendo imagen ${index + 1} de ${form.images.length}...`)
+          
+          // Subir la imagen usando la utilidad de almacenamiento
+          const imageUrl = await uploadFile(
+            'service-images',  // bucket
+            file,              // archivo
+            `services/${profile.value.id}`,  // ruta
+            `service_${Date.now()}_${index}.${file.name.split('.').pop()}`  // nombre de archivo
+          )
+          
+          imageUrls.push(imageUrl)
+          toast.success(`Imagen ${index + 1} subida correctamente`)
+        } catch (error: any) {
+          console.error('Error subiendo imagen:', error)
+          toast.error(`Error al subir la imagen ${index + 1}: ${error.message || 'Error desconocido'}`)
+          loading.value = false
+          return
+        }
       }
     }
 
@@ -507,8 +537,8 @@ const handleSubmit = async () => {
       category: form.category,
       location: form.location,
       price_type: form.price_type,
-      price_from: form.price_from!,
-      price_to: form.price_to,
+      price_from: priceFrom,
+      price_to: priceTo,
       availability: form.availability,
       response_time: form.response_time,
       user_id: profile.value.id,
@@ -524,8 +554,11 @@ const handleSubmit = async () => {
 
     if (error) throw error
 
-    // Limpiar vistas previas
-    previewImages.value.forEach(img => URL.revokeObjectURL(img.preview))
+    // Limpiar vistas previas si hay imágenes
+    if (hasImages) {
+      previewImages.value.forEach(img => URL.revokeObjectURL(img.preview))
+    }
+    
     toast.success('¡Servicio publicado exitosamente!')
     router.push('/services')
   } catch (error: any) {

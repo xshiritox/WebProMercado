@@ -133,10 +133,6 @@
               <span class="text-gray-600">Baños:</span>
               <span class="font-medium text-gray-900 ml-2">{{ property.bathrooms }}</span>
             </div>
-            <div>
-              <span class="text-gray-600">Área:</span>
-              <span class="font-medium text-gray-900 ml-2">{{ property.area }}m²</span>
-            </div>
             <div v-if="property.parking_spaces">
               <span class="text-gray-600">Parqueaderos:</span>
               <span class="font-medium text-gray-900 ml-2">{{ property.parking_spaces }}</span>

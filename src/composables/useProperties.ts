@@ -299,7 +299,7 @@ export const useProperties = () => {
   }
 
   const viewProperty = (propertyId: string | number) => {
-    router.push(`/propiedades/${propertyId}`)
+    router.push(`/property/${propertyId}`)
   }
 
   return {

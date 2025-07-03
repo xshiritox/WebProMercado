@@ -189,14 +189,11 @@
                 <Bath class="w-4 h-4" />
                 <span>{{ property.bathrooms || 'N/A' }}</span>
               </div>
-              <div class="flex items-center gap-1">
-                <Square class="w-4 h-4" />
-                <span>{{ property.area }}m²</span>
-              </div>
+
             </div>
           </div>
 
-          <div class="flex items-center justify-between text-sm text-gray-500">
+          <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
             <div class="flex items-center gap-1">
               <MapPin class="w-4 h-4" />
               <span>{{ property.location }}</span>
@@ -206,6 +203,16 @@
               <span>{{ formatDate(property.created_at) }}</span>
             </div>
           </div>
+
+          <!-- Action Button -->
+          <div class="mt-4">
+            <button
+              @click="viewProperty(property.id)"
+              class="w-full btn-primary justify-center"
+            >
+              Ver Detalles
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -214,8 +221,9 @@
 
 <script setup lang="ts">
 import { useProperties } from '../composables/useProperties'
-import { Plus, MapPin, Bed, Bath, Star, Home, ImageOff, Clock, Square } from 'lucide-vue-next'
+import { Plus, MapPin, Bed, Bath, Star, Home, ImageOff, Clock } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
+import { onMounted } from 'vue'
 
 const { isAuthenticated } = useAuth()
 
@@ -226,8 +234,14 @@ const {
   viewProperty,
   propertyTypes,
   transactionTypes,
-  setFilters
+  setFilters,
+  getProperties
 } = useProperties()
+
+// Load properties when the component is mounted
+onMounted(() => {
+  getProperties()
+})
 
 const colombianCities = [
   'Bogotá',

@@ -1,8 +1,97 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Servicios</h1>
+      <p class="text-gray-600">Encuentra los mejores servicios profesionales cerca de ti</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Search -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+          <div class="relative">
+            <input
+              v-model="searchInput"
+              @input="handleSearch"
+              type="text"
+              placeholder="Buscar servicios..."
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+            <Search class="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+          </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+          <select
+            v-model="selectedCategoryLocal"
+            @change="handleCategoryChange"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="">Todas las categorías</option>
+            <option v-for="category in serviceCategories" :key="category" :value="category">
+              {{ category }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Price Range -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Precio</label>
+          <select
+            v-model="priceRange"
+            @change="handlePriceFilter"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="">Cualquier precio</option>
+            <option value="0-50000">Hasta $50,000</option>
+            <option value="50000-200000">$50,000 - $200,000</option>
+            <option value="200000-500000">$200,000 - $500,000</option>
+            <option value="500000-1000000">$500,000 - $1,000,000</option>
+            <option value="1000000+">Más de $1,000,000</option>
+          </select>
+        </div>
+
+        <!-- Sort -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Ordenar por</label>
+          <select
+            v-model="sortByLocal"
+            @change="handleSortChange"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="created_at">Más recientes</option>
+            <option value="price_asc">Precio: menor a mayor</option>
+            <option value="price_desc">Precio: mayor a menor</option>
+            <option value="rating">Mejor valorados</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Info -->
+    <div class="flex justify-between items-center mb-6">
+      <p class="text-gray-600">
+        Mostrando {{ filteredServices?.length || 0 }} servicios
+        <span v-if="searchQuery">de "{{ searchQuery }}"</span>
+        <span v-if="selectedCategory">en {{ selectedCategory }}</span>
+      </p>
+      
+      <router-link
+        v-if="isAuthenticated"
+        to="/post-service"
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+      >
+        <Plus class="w-4 h-4 mr-2" />
+        Publicar Servicio
+      </router-link>
+    </div>
+
     <!-- Services Grid -->
     <div class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Servicios Disponibles</h2>
       
       <div v-if="loadingServices" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div v-for="n in 6" :key="n" class="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
@@ -15,7 +104,7 @@
         </div>
       </div>
 
-      <div v-else-if="services.length === 0" class="text-center py-12 bg-white rounded-lg shadow">
+      <div v-else-if="filteredServices.length === 0" class="text-center py-12 bg-white rounded-lg shadow">
         <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Wrench class="w-8 h-8 text-gray-400" />
         </div>
@@ -33,20 +122,23 @@
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div 
-          v-for="service in services" 
+          v-for="service in filteredServices" 
           :key="service.id"
           class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200"
+          @click="viewService(service)"
+          style="cursor: pointer;"
         >
           <div class="h-48 bg-gray-100 relative">
-            <img 
-              v-if="service.images && service.images.length > 0"
-              :src="service.images[0]" 
+            <div v-if="!service.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+              <Wrench class="w-12 h-12 mb-2" />
+              <span class="text-sm">Sin imagen disponible</span>
+            </div>
+            <img
+              v-else
+              :src="service.images[0]"
               :alt="service.title"
               class="w-full h-full object-cover"
             >
-            <div v-else class="w-full h-full flex items-center justify-center bg-gray-100">
-              <Wrench class="w-12 h-12 text-gray-400" />
-            </div>
             <div class="absolute top-2 right-2 bg-white rounded-full p-1 shadow">
               <Heart class="w-5 h-5 text-gray-400 hover:text-red-500 cursor-pointer" />
             </div>
@@ -57,6 +149,49 @@
               <span class="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded">
                 {{ service.category }}
               </span>
+            </div>
+            <div class="flex items-center">
+              <div class="relative w-10 h-10 flex-shrink-0 mr-4">
+                <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden ring-2 ring-white shadow-sm">
+                  <img 
+                    v-if="service.profile?.avatar_url" 
+                    :src="service.profile.avatar_url" 
+                    :alt="service.profile.full_name"
+                    class="w-full h-full object-cover"
+                  >
+                  <User v-else class="w-5 h-5 text-gray-400" />
+                </div>
+                <!-- Badge de verificación para perfiles verificados -->
+                <div v-if="service.profile?.badge === 'verified'" class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
+                  <div class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                    <Check class="w-2.5 h-2.5 text-white" />
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col">
+                <p class="text-sm font-medium text-gray-900">{{ service.profile?.full_name || 'Anónimo' }}</p>
+                
+                <div class="flex items-center space-x-1">
+                  <span 
+                    v-if="service.profile?.badge" 
+                    class="text-xs px-1.5 py-0.5 rounded-full mt-1"
+                    :class="{
+                      'bg-blue-100 text-blue-800': service.profile.badge === 'professional',
+                      'bg-green-100 text-green-800': service.profile.badge === 'business',
+                      'bg-gray-100 text-gray-800': !['professional', 'business'].includes(service.profile.badge)
+                    }"
+                  >
+                    {{ getBadgeName(service.profile.badge) }}
+                  </span>
+                  
+                  <div v-if="service.rating" class="flex items-center ml-1">
+                    <Star class="w-3 h-3 text-yellow-400 fill-current mr-0.5" />
+                    <span class="text-xs text-gray-500">
+                      {{ service.rating.toFixed(1) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
             <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ service.description }}</p>
             <div class="flex items-center justify-between">
@@ -73,6 +208,14 @@
                 <Star class="w-4 h-4 text-yellow-400 fill-current mr-1" />
                 <span class="text-sm font-medium text-gray-900">{{ service.rating || 'Nuevo' }}</span>
               </div>
+            </div>
+            <div class="mt-4">
+              <button 
+                @click.stop="viewService(service)"
+                class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 text-sm"
+              >
+                Ver Detalles
+              </button>
             </div>
           </div>
         </div>
@@ -145,57 +288,80 @@
 </template>
 
 <script setup lang="ts">
-
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { Check, User } from 'lucide-vue-next'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { 
   Search, MessageCircle, CheckCircle, UserPlus, Plus,
-  Wrench, Palette, Camera, Car, Home, Briefcase, Heart, GraduationCap, Star
+  Wrench, Heart, Star
 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
-import { supabase } from '../lib/supabase'
+import { useServices } from '../composables/useServices'
 
 const route = useRoute()
+const router = useRouter()
 const { isAuthenticated } = useAuth()
-const loadingServices = ref(false)
-const services = ref<any[]>([])
-const selectedCategory = ref('')
+const {
+  filteredServices,
+  loading: loadingServices,
+  serviceCategories,
+  searchQuery,
+  selectedCategory,
+  searchServices,
+  filterByCategory,
+  setSortBy,
+  setPriceRange,
+  // viewService is now handled locally
+  getPriceType,
+  getServices
+} = useServices()
 
-const loadServices = async () => {
-  loadingServices.value = true
-  try {
-    let query = supabase
-      .from('services')
-      .select('*')
-      .eq('status', 'active')
-      .order('featured', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(12)
+const searchInput = ref('')
+const selectedCategoryLocal = ref('')
+const sortByLocal = ref('created_at')
+const priceRange = ref('')
 
-    if (selectedCategory.value) {
-      query = query.eq('category', selectedCategory.value)
-    }
-
-    const { data, error } = await query
-
-    if (error) throw error
-    
-    services.value = data || []
-  } catch (error) {
-    console.error('Error loading services:', error)
-  } finally {
-    loadingServices.value = false
-  }
+const handleSearch = () => {
+  searchServices(searchInput.value)
 }
 
-const getPriceType = (type: string) => {
-  const types: Record<string, string> = {
-    fixed: 'Precio fijo',
-    hourly: 'Por hora',
-    project: 'Por proyecto',
-    negotiable: 'Precio negociable'
+const handleCategoryChange = () => {
+  filterByCategory(selectedCategoryLocal.value)
+}
+
+const handleSortChange = () => {
+  setSortBy(sortByLocal.value)
+}
+
+const handlePriceFilter = () => {
+  setPriceRange(priceRange.value)
+}
+
+const viewService = (service: any) => {
+  router.push({ 
+    name: 'service-detail', 
+    params: { id: service.id } 
+  })
+}
+
+const loadServices = async () => {
+  try {
+    await getServices()
+    
+    // Aplicar búsqueda si hay un término en la URL
+    if (route.query.search) {
+      searchInput.value = route.query.search as string
+      searchServices(searchInput.value)
+    }
+    
+    // Aplicar filtro de categoría si hay uno en la URL
+    if (route.query.category) {
+      selectedCategoryLocal.value = route.query.category as string
+      filterByCategory(selectedCategoryLocal.value)
+    }
+  } catch (error) {
+    console.error('Error cargando servicios:', error)
   }
-  return types[type] || type
 }
 
 const formatPrice = (price: number) => {
@@ -207,19 +373,39 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
-// Cargar los servicios al montar el componente
+const getBadgeName = (badge: string) => {
+  const badges: Record<string, string> = {
+    'professional': 'Profesional',
+    'business': 'Empresa',
+    'verified': 'Verificado',
+    'premium': 'Premium'
+  }
+  return badges[badge] || badge
+}
+
+
+
+// Cargar servicios cuando el componente se monta
 onMounted(() => {
   loadServices()
-  
-  // Verificar si hay una categoría en la URL
-  if (route.query.category) {
-    selectedCategory.value = route.query.category as string
-    loadServices()
-  }
 })
-//   } else {
-//     selectedCategory.value = ''
-//   }
-//   loadServices()
-// })
+
+// Observar cambios en los parámetros de la ruta
+watch(() => route.query, (newQuery) => {
+  if (newQuery.search) {
+    searchInput.value = newQuery.search as string
+    searchServices(searchInput.value)
+  } else if (searchInput.value) {
+    searchInput.value = ''
+    searchServices('')
+  }
+  
+  if (newQuery.category) {
+    selectedCategoryLocal.value = newQuery.category as string
+    filterByCategory(selectedCategoryLocal.value)
+  } else if (selectedCategoryLocal.value) {
+    selectedCategoryLocal.value = ''
+    filterByCategory('')
+  }
+}, { immediate: true })
 </script>

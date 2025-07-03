@@ -10,7 +10,7 @@
     "build:netlify": "npm run build"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.38.0",
+    "@supabase/supabase-js": "^2.50.3",
     "@vueuse/core": "^10.5.0",
     "browser-image-compression": "^2.0.2",
     "lucide-vue-next": "^0.292.0",
