@@ -11,8 +11,9 @@
             <span class="text-xl font-bold">PubliNet</span>
           </div>
           <p class="text-gray-300">
-            La plataforma líder para comprar y vender productos, propiedades y servicios. 
-            Conectamos a compradores y vendedores en toda Colombia.
+            La plataforma número uno en Colombia para la compra y venta de productos, 
+            propiedades y servicios. Conectamos de forma segura y eficiente a compradores 
+            y vendedores en todo el país. ¡Publica hoy y haz que te encuentren miles de personas listas para comprar!
           </p>
         </div>
 

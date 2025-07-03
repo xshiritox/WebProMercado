@@ -448,7 +448,7 @@ const userStats = ref({
   properties: 0,
   services: 0,
   sold: 0,
-  rating: 4.8
+  rating: 5.0
 })
 
 const tabs = [

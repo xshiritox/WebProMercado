@@ -142,7 +142,7 @@
               </button>
             </p>
             <p class="text-sm text-gray-500 mb-4">
-              Máximo 5 imágenes. Formatos: JPG, PNG, WebP (máx. 5MB cada una)
+              Máximo 5 imágenes. Formatos: JPG, PNG, WebP 
             </p>
             
             <!-- Vista previa de imágenes -->

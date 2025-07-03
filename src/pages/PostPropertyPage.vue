@@ -35,7 +35,7 @@
                 type="number"
                 required
                 min="0"
-                step="1000000"
+                step="1000"
                 class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="0"
               />
@@ -210,7 +210,7 @@
               </button>
             </p>
             <p class="text-sm text-gray-500 mb-4">
-              Máximo 10 imágenes. Formatos: JPG, PNG, WebP (máx. 5MB cada una)
+              Máximo 10 imágenes. Formatos: JPG, PNG, WebP 
             </p>
             
             <!-- Vista previa de imágenes -->
@@ -306,6 +306,7 @@
 <script setup lang="ts">
 import { reactive, computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { uploadFile, deleteFile } from '../utils/storage'
 import { Home, ImageIcon, Loader2, X } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { useToast } from 'vue-toastification'
@@ -450,40 +451,49 @@ const handleSubmit = async () => {
   try {
     loading.value = true
     
+    // Verificar que hay imágenes para subir
+    if (!form.images || form.images.length === 0) {
+      throw new Error('Debes subir al menos una imagen de la propiedad')
+    }
+    
     // Subir imágenes
-    const imageUrls = []
-    for (const file of form.images) {
+    const imageUrls: string[] = []
+    
+    for (let i = 0; i < form.images.length; i++) {
+      const file = form.images[i]
       try {
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
-        const filePath = `properties/${fileName}`
+        console.log(`Subiendo imagen ${i + 1} de ${form.images.length}...`)
         
-        const { error: uploadError } = await supabase.storage
-          .from('property-images')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          })
+        // Usar la función uploadFile del helper
+        const imageUrl = await uploadFile(
+          'property-images',  // bucket
+          file,               // archivo
+          `properties/${profile.value.id}`,  // ruta
+          `property_${Date.now()}_${i}.${file.name.split('.').pop()}`  // nombre de archivo
+        )
         
-        if (uploadError) {
-          console.error('Error de Supabase Storage:', uploadError)
-          toast.error(`Error al subir la imagen: ${uploadError.message}`)
-          throw uploadError
-        }
+        console.log('Imagen subida correctamente:', imageUrl)
+        imageUrls.push(imageUrl)
         
-        const { data: { publicUrl } } = supabase.storage
-          .from('property-images')
-          .getPublicUrl(filePath)
-        
-        if (!publicUrl) {
-          toast.error('Error al obtener la URL de la imagen')
-          return
-        }
-        
-        imageUrls.push(publicUrl)
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error subiendo imagen:', error)
-        toast.error('Error al subir una o más imágenes')
+        
+        // Si hay un error, eliminar las imágenes que ya se subieron
+        if (imageUrls.length > 0) {
+          console.log('Eliminando imágenes ya subidas debido a un error...')
+          for (const url of imageUrls) {
+            try {
+              const filePath = url.split('/').pop()
+              if (filePath) {
+                await deleteFile('property-images', filePath)
+              }
+            } catch (deleteError) {
+              console.error('Error eliminando imagen después de fallo:', deleteError)
+            }
+          }
+        }
+        
+        toast.error(`Error al subir la imagen: ${error.message || 'Error desconocido'}`)
         loading.value = false
         return
       }

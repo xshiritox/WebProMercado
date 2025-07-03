@@ -138,7 +138,7 @@
         @click="viewProperty(property.id)"
       >
         <!-- Property Image -->
-        <div class="relative h-48 bg-gray-100">
+        <div class="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
           <div v-if="!property.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
             <ImageOff class="w-12 h-12 mb-2" />
             <span class="text-sm">Sin imagen disponible</span>
@@ -147,7 +147,7 @@
             v-else
             :src="property.images[0]"
             :alt="property.title"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-contain bg-white p-2"
           />
           <div class="absolute top-2 left-2">
             <span

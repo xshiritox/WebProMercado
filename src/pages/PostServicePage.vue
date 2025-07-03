@@ -202,7 +202,7 @@
               </button>
             </p>
             <p class="text-sm text-gray-500 mb-4">
-              Máximo 8 imágenes. Formatos: JPG, PNG, WebP (máx. 5MB cada una)
+              Máximo 8 imágenes. Formatos: JPG, PNG, WebP 
             </p>
             
             <!-- Vista previa de imágenes -->
@@ -353,8 +353,8 @@ const isFormValid = computed(() => {
 
 const compressImage = async (file: File): Promise<File> => {
   const options = {
-    maxSizeMB: 0.5, // Tamaño máximo de 0.5MB
-    maxWidthOrHeight: 1200, // Ancho o alto máximo
+    maxSizeMB: 0.1, // 100KB
+    maxWidthOrHeight: 1024, // Ancho o alto máximo
     useWebWorker: true,
     maxIteration: 10
   }
@@ -363,7 +363,7 @@ const compressImage = async (file: File): Promise<File> => {
     const compressedBlob = await imageCompression(file, options)
     // Convertir Blob a File
     return new File([compressedBlob], file.name, {
-      type: file.type,
+      type: compressedBlob.type,
       lastModified: Date.now()
     })
   } catch (error) {
@@ -475,23 +475,14 @@ const validatePrice = (price: number | null): number | null => {
 }
 
 const handleSubmit = async () => {
-  if (!isFormValid.value) {
-    toast.error('Por favor completa todos los campos requeridos')
-    return
-  }
+  if (!isFormValid.value) return
   
-  if (!profile.value) {
-    toast.error('Debes iniciar sesión para publicar un servicio')
-    return
-  }
-
-  // Las imágenes son opcionales
-  const hasImages = form.images.length > 0
+  loading.value = true
   
   try {
-    // Validar y formatear precios
+    // Validar precios
     const priceFrom = validatePrice(form.price_from)
-    const priceTo = form.price_to !== null ? validatePrice(form.price_to) : null
+    const priceTo = form.price_to ? validatePrice(form.price_to) : null
     
     if (priceFrom === null) {
       toast.error('Por favor ingresa un precio válido')
@@ -503,59 +494,52 @@ const handleSubmit = async () => {
       return
     }
 
-    loading.value = true
-    
-    // Subir imágenes si las hay
+    // Subir las imágenes primero
     const imageUrls: string[] = []
-    if (hasImages) {
-      for (const [index, file] of form.images.entries()) {
+    for (let i = 0; i < form.images.length; i++) {
+      const file = form.images[i]
+      if (file instanceof File) {
         try {
-          toast.info(`Subiendo imagen ${index + 1} de ${form.images.length}...`)
+          toast.info(`Subiendo imagen ${i + 1} de ${form.images.length}...`)
           
           // Subir la imagen usando la utilidad de almacenamiento
           const imageUrl = await uploadFile(
             'service-images',  // bucket
             file,              // archivo
             `services/${profile.value.id}`,  // ruta
-            `service_${Date.now()}_${index}.${file.name.split('.').pop()}`  // nombre de archivo
+            `service_${Date.now()}_${i}.${file.name.split('.').pop()}`  // nombre de archivo
           )
           
-          imageUrls.push(imageUrl)
-          toast.success(`Imagen ${index + 1} subida correctamente`)
+          imageUrls[i] = imageUrl
+          toast.success(`Imagen ${i + 1} subida correctamente`)
         } catch (error: any) {
           console.error('Error subiendo imagen:', error)
-          toast.error(`Error al subir la imagen ${index + 1}: ${error.message || 'Error desconocido'}`)
+          toast.error(`Error al subir la imagen ${i + 1}: ${error.message || 'Error desconocido'}`)
           loading.value = false
           return
         }
       }
     }
-
+    
+    // Crear objeto con las URLs de las imágenes
     const serviceData = {
-      title: form.title,
-      description: form.description,
-      category: form.category,
-      location: form.location,
-      price_type: form.price_type,
+      ...form,
+      images: imageUrls,
+      user_id: profile.value.id,
       price_from: priceFrom,
       price_to: priceTo,
-      availability: form.availability,
-      response_time: form.response_time,
-      user_id: profile.value.id,
-      featured: form.featured,
-      images: imageUrls
     }
 
     const { error } = await supabase
       .from('services')
-      .insert(serviceData)
+      .insert([serviceData])
       .select()
       .single()
 
     if (error) throw error
 
     // Limpiar vistas previas si hay imágenes
-    if (hasImages) {
+    if (previewImages.value.length > 0) {
       previewImages.value.forEach(img => URL.revokeObjectURL(img.preview))
     }
     

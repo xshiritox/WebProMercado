@@ -48,16 +48,19 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
       <!-- Product Images -->
       <div>
-        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
-          <img
-            :src="product.images?.[0]"
-            :alt="product.title"
-            class="w-full h-96 object-cover rounded-lg"
-            v-if="product.images?.[0]"
-          />
-          <div v-else class="w-full h-96 bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400">
-            <ImageOff class="w-16 h-16 mb-4" />
-            <span class="text-lg">Sin imagen disponible</span>
+        <div class="aspect-w-1 aspect-h-1 bg-gray-100 rounded-lg overflow-hidden mb-4">
+          <div class="w-full h-96 flex items-center justify-center overflow-hidden">
+            <img
+              v-if="currentImage || product.images?.[0]"
+              :src="currentImage || product.images[0]"
+              :alt="product.title"
+              class="w-full h-full object-contain bg-white p-4"
+              style="max-height: 24rem;"
+            />
+            <div v-else class="w-full h-96 bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400 p-4">
+              <ImageOff class="w-16 h-16 mb-4" />
+              <span class="text-lg text-center">Sin imagen disponible</span>
+            </div>
           </div>
         </div>
         
@@ -66,12 +69,13 @@
           <div
             v-for="(image, index) in product.images.slice(1, 5)"
             :key="index"
-            class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-80"
+            class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 flex items-center justify-center"
+            @click="currentImage = image"
           >
             <img
               :src="image"
               :alt="`${product.title} - imagen ${index + 2}`"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-contain p-1 bg-white"
             />
           </div>
         </div>
@@ -157,7 +161,7 @@
               </div>
               <div class="flex items-center gap-1 text-sm text-gray-600">
                 <Star class="w-4 h-4 text-yellow-500" />
-                <span>4.8 (23 reseñas)</span>
+                <span>5.0</span>
               </div>
             </div>
           </div>
@@ -228,6 +232,7 @@ const { getProduct } = useProducts()
 const product = ref<any>(null)
 const relatedProducts = ref<any[]>([])
 const loading = ref(true)
+const currentImage = ref<string>('')
 
 const conditionClass = computed(() => {
   switch (product.value?.condition) {
@@ -321,6 +326,7 @@ const sendEmail = () => {
 
 onMounted(async () => {
   const productId = route.params.id as string
+  currentImage.value = ''
   
   try {
     product.value = await getProduct(productId)

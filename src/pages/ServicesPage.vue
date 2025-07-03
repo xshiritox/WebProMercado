@@ -128,7 +128,7 @@
           @click="viewService(service)"
           style="cursor: pointer;"
         >
-          <div class="h-48 bg-gray-100 relative">
+          <div class="h-48 bg-gray-100 relative flex items-center justify-center overflow-hidden">
             <div v-if="!service.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
               <Wrench class="w-12 h-12 mb-2" />
               <span class="text-sm">Sin imagen disponible</span>
@@ -137,7 +137,7 @@
               v-else
               :src="service.images[0]"
               :alt="service.title"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-contain bg-white p-2"
             >
             <div class="absolute top-2 right-2 bg-white rounded-full p-1 shadow">
               <Heart class="w-5 h-5 text-gray-400 hover:text-red-500 cursor-pointer" />

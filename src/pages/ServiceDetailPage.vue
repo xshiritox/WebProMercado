@@ -23,16 +23,19 @@
         <!-- Service Images -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
           <div class="aspect-w-16 aspect-h-9 bg-gray-100">
-            <div v-if="!service.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center">
-              <Wrench class="w-16 h-16 mb-4" />
-              <span class="text-lg">Sin imagen disponible</span>
+            <div class="w-full h-96 flex items-center justify-center overflow-hidden">
+              <div v-if="!service.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+                <Wrench class="w-16 h-16 mb-4" />
+                <span class="text-lg">Sin imagen disponible</span>
+              </div>
+              <img
+                v-else
+                :src="service.images[0]"
+                :alt="service.title"
+                class="w-full h-full object-contain bg-white p-4"
+                style="max-height: 24rem;"
+              >
             </div>
-            <img
-              v-else
-              :src="service.images[0]"
-              :alt="service.title"
-              class="w-full h-96 object-cover"
-            >
           </div>
         </div>
 
@@ -56,9 +59,21 @@
           <div class="border-t border-gray-200 pt-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Detalles del servicio</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="flex items-center">
-                <Calendar class="w-5 h-5 text-gray-400 mr-2" />
-                <span class="text-gray-600">Disponibilidad: {{ service.availability || 'A convenir' }}</span>
+              <div class="flex items-start">
+                <Calendar class="w-5 h-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                <div>
+                  <span class="text-gray-600">Disponibilidad: </span>
+                  <span v-if="!service.availability || service.availability.length === 0" class="text-gray-600">A convenir</span>
+                  <div v-else class="flex flex-wrap gap-1 mt-1">
+                    <span 
+                      v-for="day in orderedAvailability" 
+                      :key="day"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    >
+                      {{ day }}
+                    </span>
+                  </div>
+                </div>
               </div>
               <div class="flex items-center">
                 <Clock class="w-5 h-5 text-gray-400 mr-2" />
@@ -123,7 +138,7 @@
               <h4 class="font-semibold text-gray-900">{{ service.profile?.full_name || 'Anónimo' }}</h4>
               <div class="flex items-center text-sm text-gray-500">
                 <Star class="w-4 h-4 text-yellow-400 mr-1" />
-                <span>4.8 (24 reseñas)</span>
+                <span>5.0</span>
               </div>
             </div>
           </div>
@@ -134,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { useToast } from 'vue-toastification'
@@ -149,6 +164,22 @@ const toast = useToast()
 const service = ref<any>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+
+const daysOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+
+const orderedAvailability = computed(() => {
+  if (!service.value?.availability) return []
+  
+  // Si es un string, convertirlo a array
+  const availability = Array.isArray(service.value.availability) 
+    ? [...service.value.availability] 
+    : [service.value.availability]
+  
+  // Ordenar según el orden de daysOrder
+  return availability.sort((a, b) => {
+    return daysOrder.indexOf(a) - daysOrder.indexOf(b)
+  })
+})
 
 const loadService = async () => {
   try {

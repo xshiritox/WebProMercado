@@ -48,16 +48,19 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
       <!-- Property Images -->
       <div>
-        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
-          <img
-            :src="property.images?.[0]"
-            :alt="property.title"
-            class="w-full h-96 object-cover rounded-lg"
-            v-if="property.images?.[0]"
-          />
-          <div v-else class="w-full h-96 bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400">
-            <ImageOff class="w-16 h-16 mb-4" />
-            <span class="text-lg">Sin imagen disponible</span>
+        <div class="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg overflow-hidden mb-4">
+          <div class="w-full h-96 flex items-center justify-center overflow-hidden">
+            <img
+              v-if="currentImage || property.images?.[0]"
+              :src="currentImage || property.images[0]"
+              :alt="property.title"
+              class="w-full h-full object-contain bg-white p-4"
+              style="max-height: 24rem;"
+            />
+            <div v-else class="w-full h-96 bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400 p-4">
+              <ImageOff class="w-16 h-16 mb-4" />
+              <span class="text-lg text-center">Sin imagen disponible</span>
+            </div>
           </div>
         </div>
         
@@ -66,7 +69,8 @@
           <div
             v-for="(image, index) in property.images.slice(1, 5)"
             :key="index"
-            class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-80"
+            class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 flex items-center justify-center"
+            @click="currentImage = image"
           >
             <img
               :src="image"
@@ -169,7 +173,7 @@
               </div>
               <div class="flex items-center gap-1 text-sm text-gray-600">
                 <Star class="w-4 h-4 text-yellow-500" />
-                <span>4.8 (23 reseñas)</span>
+                <span>5.0</span>
               </div>
             </div>
           </div>
@@ -234,6 +238,7 @@ const route = useRoute()
 const property = ref<any>(null)
 const relatedProperties = ref<any[]>([])
 const loading = ref(true)
+const currentImage = ref<string>('')
 
 const transactionTypeClass = computed(() => {
   return property.value?.transaction_type === 'venta' ? 'bg-green-500' : 'bg-blue-500'
@@ -348,6 +353,7 @@ const getProperty = async (id: string) => {
 
 onMounted(async () => {
   const propertyId = route.params.id as string
+  currentImage.value = ''
   
   try {
     property.value = await getProperty(propertyId)

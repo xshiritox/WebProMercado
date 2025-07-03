@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
     <!-- Product Image -->
-    <div class="relative h-48 bg-gray-100">
+    <div class="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
       <div v-if="!product.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
         <ImageOff class="w-12 h-12 mb-2" />
         <span class="text-sm">Sin imagen disponible</span>
@@ -10,7 +10,7 @@
         v-else
         :src="product.images[0]"
         :alt="product.title"
-        class="w-full h-full object-cover"
+        class="w-full h-full object-contain bg-white p-2"
       />
       <div v-if="product.featured" class="absolute top-2 left-2">
         <span
