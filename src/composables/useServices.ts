@@ -204,7 +204,7 @@ export const useServices = () => {
       const { data: service, error: fetchError } = await supabase
         .from('services')
         .select('images')
-        .in('id', [id])
+        .eq('id', id)
         .single()
 
       if (fetchError) throw fetchError
@@ -213,7 +213,7 @@ export const useServices = () => {
       const { error } = await supabase
         .from('services')
         .delete()
-        .in('id', [id])
+        .eq('id', id)
 
       if (error) throw error
 
