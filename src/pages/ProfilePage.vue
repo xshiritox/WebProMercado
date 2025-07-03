@@ -579,7 +579,7 @@ const deleteProperty = async (propertyId: string) => {
       const { data: property, error: fetchError } = await supabase
         .from('properties')
         .select('images')
-        .in('id', [propertyId])
+        .eq('id', propertyId)
         .single()
 
       if (fetchError) throw fetchError
@@ -588,7 +588,7 @@ const deleteProperty = async (propertyId: string) => {
       const { error } = await supabase
         .from('properties')
         .delete()
-        .in('id', [propertyId])
+        .eq('id', propertyId)
 
       if (error) throw error
 
@@ -644,7 +644,7 @@ const deleteService = async (serviceId: string) => {
       const { data: service, error: fetchError } = await supabase
         .from('services')
         .select('images')
-        .in('id', [serviceId])
+        .eq('id', serviceId)
         .single()
 
       if (fetchError) throw fetchError
@@ -653,7 +653,7 @@ const deleteService = async (serviceId: string) => {
       const { error } = await supabase
         .from('services')
         .delete()
-        .in('id', [serviceId])
+        .eq('id', serviceId)
 
       if (error) throw error
 
