@@ -283,20 +283,37 @@ export const useAuth = () => {
   // Función para manejar sesión inválida
   const handleInvalidSession = async () => {
     console.log('Manejando sesión inválida...')
-    // Forzamos cierre de sesión en Supabase
-    await supabase.auth.signOut()
     
-    // Limpiamos el estado local
+    // PRIMERO: Limpiamos el estado local inmediatamente
     user.value = null
     profile.value = null
     
-    // Limpiamos el almacenamiento local
+    // SEGUNDO: Limpiamos el almacenamiento local inmediatamente
     if (typeof window !== 'undefined') {
       localStorage.removeItem('sb-auth-token')
       sessionStorage.removeItem('sb-auth-token')
+      // También limpiamos todas las claves relacionadas con Supabase
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+          localStorage.removeItem(key)
+        }
+      })
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+          sessionStorage.removeItem(key)
+        }
+      })
     }
     
-    // Redirigir a la página de inicio de sesión si no estamos ya ahí
+    // TERCERO: Intentamos cerrar sesión en Supabase (sin bloquear si falla)
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.warn('Error al cerrar sesión en Supabase (ignorado):', error)
+      // Ignoramos el error ya que el estado local ya está limpio
+    }
+    
+    // CUARTO: Redirigir a la página de inicio de sesión si no estamos ya ahí
     if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
       window.location.href = '/login?session_expired=true'
     }
@@ -312,6 +329,7 @@ export const useAuth = () => {
       // Manejar específicamente el error de token inválido
       if (error.message?.includes('Invalid Refresh Token') || 
           error.message?.includes('Auth session missing') ||
+          error.message?.includes('refresh_token_not_found') ||
           error.status === 401) {
         await handleInvalidSession()
       }
