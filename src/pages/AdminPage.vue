@@ -244,58 +244,113 @@
             <h2 class="text-xl font-semibold text-gray-900">Reportes y Moderación</h2>
           </div>
 
-          <div class="bg-gray-50 rounded-lg p-8 text-center">
-            <AlertTriangle class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay reportes pendientes</h3>
-            <p class="text-gray-600">Los reportes de usuarios aparecerán aquí para su revisión</p>
-          </div>
-        </div>
+          <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+              <div class="flex-1">
+                <label for="report-type-filter" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Reporte</label>
+                <select
+                  id="report-type-filter"
+                  v-model="reportTypeFilter"
+                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                >
+                  <option value="all">Todos los tipos</option>
+                  <option value="spam">Spam</option>
+                  <option value="inappropriate">Contenido inapropiado</option>
+                  <option value="scam">Estafa</option>
+                  <option value="other">Otro</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <label for="report-status-filter" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                <select
+                  id="report-status-filter"
+                  v-model="reportStatusFilter"
+                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                >
+                  <option value="pending">Pendientes</option>
+                  <option value="resolved">Resueltos</option>
+                  <option value="all">Todos</option>
+                </select>
+              </div>
+            </div>
 
-        <!-- Settings Tab -->
-        <div v-if="activeTab === 'settings'">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-semibold text-gray-900">Configuración del Sistema</h2>
-          </div>
-
-          <div class="space-y-6">
-            <div class="bg-gray-50 rounded-lg p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Configuración General</h3>
-              
-              <div class="space-y-4">
-                <div class="flex items-center justify-between">
+            <div v-if="filteredReports.length > 0" class="space-y-4">
+              <div 
+                v-for="report in filteredReports" 
+                :key="report.id"
+                class="border rounded-lg p-4"
+                :class="{
+                  'border-red-200 bg-red-50': report.status === 'pending',
+                  'border-green-200 bg-green-50': report.status === 'resolved'
+                }"
+              >
+                <div class="flex justify-between items-start">
                   <div>
-                    <h4 class="font-medium text-gray-900">Modo Mantenimiento</h4>
-                    <p class="text-sm text-gray-600">Deshabilita el acceso público a la plataforma</p>
+                    <div class="flex items-center gap-2">
+                      <h3 class="font-medium text-gray-900">
+                        {{ getReportTypeText(report.type) }}
+                      </h3>
+                      <span 
+                        class="px-2 py-0.5 rounded-full text-xs font-medium"
+                        :class="{
+                          'bg-red-100 text-red-800': report.status === 'pending',
+                          'bg-green-100 text-green-800': report.status === 'resolved'
+                        }"
+                      >
+                        {{ report.status === 'resolved' ? 'Resuelto' : 'Pendiente' }}
+                      </span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">
+                      Reportado por: {{ report.reporter?.email || 'Usuario eliminado' }}
+                    </p>
+                    <p class="text-sm text-gray-600">
+                      Fecha: {{ formatDate(report.created_at) }}
+                    </p>
                   </div>
-                  <input
-                    type="checkbox"
-                    class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
+                  <div class="flex gap-2">
+                    <button
+                      v-if="report.status !== 'resolved'"
+                      @click="resolveReport(report.id)"
+                      class="text-green-600 hover:text-green-800 text-sm font-medium"
+                    >
+                      Marcar como resuelto
+                    </button>
+                    <button
+                      @click="deleteReport(report.id)"
+                      class="text-red-600 hover:text-red-800 text-sm font-medium"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="mt-3 p-3 bg-white rounded border border-gray-200">
+                  <p class="text-sm font-medium text-gray-900">Mensaje:</p>
+                  <p class="text-sm text-gray-700 mt-1">{{ report.message || 'Sin mensaje adicional' }}</p>
                 </div>
 
-                <div class="flex items-center justify-between">
-                  <div>
-                    <h4 class="font-medium text-gray-900">Registro de Usuarios</h4>
-                    <p class="text-sm text-gray-600">Permite que nuevos usuarios se registren</p>
+                <div v-if="report.product" class="mt-3 p-3 bg-gray-50 rounded">
+                  <p class="text-sm font-medium text-gray-900">Producto reportado:</p>
+                  <div class="flex items-center gap-3 mt-2">
+                    <img 
+                      :src="report.product.images?.[0]" 
+                      :alt="report.product.title"
+                      class="w-12 h-12 object-cover rounded"
+                      v-if="report.product.images?.[0]"
+                    />
+                    <div>
+                      <p class="text-sm font-medium">{{ report.product.title }}</p>
+                      <p class="text-sm text-gray-600">${{ formatPrice(report.product.price) }}</p>
+                    </div>
                   </div>
-                  <input
-                    type="checkbox"
-                    checked
-                    class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                </div>
-
-                <div class="flex items-center justify-between">
-                  <div>
-                    <h4 class="font-medium text-gray-900">Moderación de Productos</h4>
-                    <p class="text-sm text-gray-600">Requiere aprobación para nuevos productos</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
                 </div>
               </div>
+            </div>
+
+            <div v-else class="bg-gray-50 rounded-lg p-8 text-center">
+              <AlertTriangle class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay reportes</h3>
+              <p class="text-gray-600">No se encontraron reportes con los filtros seleccionados</p>
             </div>
           </div>
         </div>
@@ -311,10 +366,46 @@ import {
 } from 'lucide-vue-next'
 import { supabase } from '../lib/supabase'
 
+interface User {
+  id: string
+  email: string
+  full_name: string
+  created_at: string
+  product_count?: number
+  badge?: string
+}
+
+interface Product {
+  id: string
+  title: string
+  price: number
+  category: string
+  status: string
+  images?: string[]
+  created_at: string
+}
+
+interface Report {
+  id: string
+  type: string
+  status: 'pending' | 'resolved'
+  message: string
+  created_at: string
+  reporter?: {
+    id: string
+    email: string
+    full_name: string
+  }
+  product?: Product
+  resolved_at?: string
+}
+
 const activeTab = ref('users')
 const userSearch = ref('')
 const productSearch = ref('')
 const productStatusFilter = ref('')
+const reportStatusFilter = ref('pending')
+const reportTypeFilter = ref('all')
 
 const stats = ref({
   totalUsers: 0,
@@ -323,8 +414,9 @@ const stats = ref({
   pendingReports: 0
 })
 
-const users = ref<any[]>([])
-const products = ref<any[]>([])
+const users = ref<User[]>([])
+const products = ref<Product[]>([])
+const reports = ref<Report[]>([])
 
 const tabs = [
   { id: 'users', name: 'Usuarios', icon: Users },
@@ -333,12 +425,14 @@ const tabs = [
   { id: 'settings', name: 'Configuración', icon: Settings }
 ]
 
+  // ...
+
 const filteredUsers = computed(() => {
   if (!userSearch.value) return users.value
   
   const query = userSearch.value.toLowerCase()
   return users.value.filter(user =>
-    user.full_name.toLowerCase().includes(query) ||
+    (user.full_name?.toLowerCase().includes(query) || '') ||
     user.email.toLowerCase().includes(query)
   )
 })
@@ -354,169 +448,249 @@ const filteredProducts = computed(() => {
     const query = productSearch.value.toLowerCase()
     filtered = filtered.filter(p =>
       p.title.toLowerCase().includes(query) ||
-      p.category.toLowerCase().includes(query)
+      (p.category?.toLowerCase().includes(query) || '')
     )
   }
 
   return filtered
 })
 
-const getBadgeClass = (badge: string) => {
-  switch (badge) {
-    case 'destacado':
-      return 'badge-destacado'
-    case 'colaborador':
-      return 'badge-colaborador'
-    case 'vip':
-      return 'badge-vip'
-    case 'moderador':
-      return 'badge-moderador'
-    case 'admin':
-      return 'badge-admin'
-    default:
-      return 'bg-gray-500'
+const filteredReports = computed(() => {
+  let filtered = reports.value
+
+  if (reportStatusFilter.value && reportStatusFilter.value !== 'all') {
+    filtered = filtered.filter(r => r.status === reportStatusFilter.value)
   }
-}
 
-const getBadgeText = (badge: string) => {
-  switch (badge) {
-    case 'destacado':
-      return 'Destacado'
-    case 'colaborador':
-      return 'Colaborador'
-    case 'vip':
-      return 'VIP'
-    case 'moderador':
-      return 'Moderador'
-    case 'admin':
-      return 'Admin'
-    default:
-      return 'Sin rol'
+  if (reportTypeFilter.value && reportTypeFilter.value !== 'all') {
+    filtered = filtered.filter(r => r.type === reportTypeFilter.value)
   }
-}
 
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'active':
-      return 'text-green-600 bg-green-100 px-2 py-1 rounded-full'
-    case 'sold':
-      return 'text-blue-600 bg-blue-100 px-2 py-1 rounded-full'
-    case 'inactive':
-      return 'text-gray-600 bg-gray-100 px-2 py-1 rounded-full'
-    default:
-      return 'text-gray-600 bg-gray-100 px-2 py-1 rounded-full'
-  }
-}
-
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'active':
-      return 'Activo'
-    case 'sold':
-      return 'Vendido'
-    case 'inactive':
-      return 'Inactivo'
-    default:
-      return 'Desconocido'
-  }
-}
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('es-CO').format(price)
-}
-
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('es-CO')
-}
-
-const editUser = (user: any) => {
-  // TODO: Implement user editing
-  console.log('Edit user:', user)
-}
-
-const deleteUser = async (userId: string) => {
-  if (confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-    // TODO: Implement user deletion
-    console.log('Delete user:', userId)
-  }
-}
-
-const editProduct = (product: any) => {
-  // TODO: Implement product editing
-  console.log('Edit product:', product)
-}
-
-const deleteProduct = async (productId: string) => {
-  if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-    // TODO: Implement product deletion
-    console.log('Delete product:', productId)
-  }
-}
-
-const loadStats = async () => {
-  try {
-    // Load users count
-    const { count: usersCount } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-
-    // Load products count
-    const { count: productsCount } = await supabase
-      .from('products')
-      .select('*', { count: 'exact', head: true })
-
-    // Load active products count
-    const { count: activeProductsCount } = await supabase
-      .from('products')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'active')
-
-    stats.value = {
-      totalUsers: usersCount || 0,
-      totalProducts: productsCount || 0,
-      activeProducts: activeProductsCount || 0,
-      pendingReports: 0
-    }
-  } catch (error) {
-    console.error('Error loading stats:', error)
-  }
-}
-
-const loadUsers = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-
-    users.value = data || []
-  } catch (error) {
-    console.error('Error loading users:', error)
-  }
-}
-
-const loadProducts = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-
-    products.value = data || []
-  } catch (error) {
-    console.error('Error loading products:', error)
-  }
-}
-
-onMounted(async () => {
-  await Promise.all([
-    loadStats(),
-    loadUsers(),
-    loadProducts()
-  ])
+  return filtered
 })
+
+  // ...
+
+  const loadStats = async () => {
+    try {
+      // Fetch user count
+      const { count: userCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+
+      // Fetch product counts
+      const { count: productCount } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+
+      const { count: activeProductCount } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+
+      // Fetch pending reports count
+      const { count: pendingReportsCount } = await supabase
+        .from('reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+
+      stats.value = {
+        totalUsers: userCount || 0,
+        totalProducts: productCount || 0,
+        activeProducts: activeProductCount || 0,
+        pendingReports: pendingReportsCount || 0
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error)
+    }
+  }
+
+  // ...
+
+  const loadReports = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('reports')
+        .select(`
+          *,
+          reporter:reporter_id (id, email, full_name),
+          product:product_id (*)
+        `)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      reports.value = data || []
+      
+      // Update stats after loading reports
+      stats.value.pendingReports = data?.filter((r: any) => r.status === 'pending').length || 0
+    } catch (error) {
+      console.error('Error loading reports:', error)
+    }
+  }
+
+  const resolveReport = async (reportId: string) => {
+    if (!confirm('¿Marcar este reporte como resuelto?')) return
+  
+    try {
+      const { error } = await supabase
+        .from('reports')
+        .update({ status: 'resolved', resolved_at: new Date().toISOString() })
+        .eq('id', reportId)
+      
+      if (error) throw error
+      
+      // Update local state
+      const index = reports.value.findIndex(r => r.id === reportId)
+      if (index !== -1) {
+        reports.value[index].status = 'resolved'
+        stats.value.pendingReports = Math.max(0, stats.value.pendingReports - 1)
+      }
+      
+      alert('Reporte marcado como resuelto')
+    } catch (error) {
+      console.error('Error resolving report:', error)
+      alert('Error al marcar el reporte como resuelto')
+    }
+  }
+
+  const deleteReport = async (reportId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este reporte?')) return
+  
+    try {
+      const { error } = await supabase
+        .from('reports')
+        .delete()
+        .eq('id', reportId)
+      
+      if (error) throw error
+      
+      // Update local state
+      const wasPending = reports.value.find(r => r.id === reportId)?.status === 'pending'
+      reports.value = reports.value.filter(r => r.id !== reportId)
+      
+      if (wasPending) {
+        stats.value.pendingReports = Math.max(0, stats.value.pendingReports - 1)
+      }
+      
+      alert('Reporte eliminado correctamente')
+    } catch (error) {
+      console.error('Error deleting report:', error)
+      alert('Error al eliminar el reporte')
+    }
+  }
+
+  const getReportTypeText = (type: string) => {
+    const types: { [key: string]: string } = {
+      spam: 'Spam',
+      inappropriate: 'Contenido inapropiado',
+      scam: 'Posible estafa',
+      other: 'Otro problema'
+    }
+    return types[type] || type
+  }
+
+  const getBadgeClass = (badge?: string) => {
+    switch (badge) {
+      case 'destacado': return 'bg-yellow-500'
+      case 'colaborador': return 'bg-blue-500'
+      case 'vip': return 'bg-purple-500'
+      case 'moderador': return 'bg-green-500'
+      case 'admin': return 'bg-red-500'
+      default: return 'bg-gray-500'
+    }
+  }
+
+  const getBadgeText = (badge?: string) => {
+    switch (badge) {
+      case 'destacado': return 'Destacado'
+      case 'colaborador': return 'Colaborador'
+      case 'vip': return 'VIP'
+      case 'moderador': return 'Moderador'
+      case 'admin': return 'Admin'
+      default: return 'Sin rol'
+    }
+  }
+
+  const getStatusClass = (status: string) => {
+    switch (status) {
+      case 'active': return 'text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs'
+      case 'sold': return 'text-blue-600 bg-blue-100 px-2 py-1 rounded-full text-xs'
+      case 'inactive': return 'text-gray-600 bg-gray-100 px-2 py-1 rounded-full text-xs'
+      default: return 'text-gray-600 bg-gray-100 px-2 py-1 rounded-full text-xs'
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'active': return 'Activo'
+      case 'sold': return 'Vendido'
+      case 'inactive': return 'Inactivo'
+      default: return status
+    }
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-CO').format(price)
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-CO')
+  }
+
+  const editUser = (user: User) => {
+    console.log('Edit user:', user)
+  }
+
+  const deleteUser = async (userId: string) => {
+    if (confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
+      console.log('Delete user:', userId)
+    }
+  }
+
+  const editProduct = (product: Product) => {
+    console.log('Edit product:', product)
+  }
+
+  const deleteProduct = async (productId: string) => {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+      console.log('Delete product:', productId)
+    }
+  }
+
+  const loadUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      users.value = data || []
+    } catch (error) {
+      console.error('Error loading users:', error)
+    }
+  }
+
+  const loadProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      products.value = data || []
+    } catch (error) {
+      console.error('Error loading products:', error)
+    }
+  }
+
+  onMounted(async () => {
+    await Promise.all([
+      loadStats(),
+      loadUsers(),
+      loadProducts(),
+      loadReports()
+    ])
+  })
 </script>

@@ -199,11 +199,11 @@
             </button>
             
             <button
-              @click="sendEmail"
+              @click="showMessageModal = true"
               class="w-full btn-outline justify-center"
             >
-              <Mail class="w-4 h-4" />
-              Enviar Email
+              <MessageCircle class="w-4 h-4" />
+              Enviar Mensaje
             </button>
             
             <button
@@ -241,14 +241,28 @@
       @close="showReportModal = false"
       @reported="handleReported"
     />
+    
+    <!-- Message Modal -->
+    <MessageModal
+      v-if="property && property.profiles"
+      :is-open="showMessageModal"
+      :recipient-id="property.user_id"
+      :recipient-name="property.profiles.full_name"
+      item-type="property"
+      :item-id="property.id"
+      :item-title="property.title"
+      @close="showMessageModal = false"
+      @sent="() => showMessageModal = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import MessageModal from '@/components/MessageModal.vue'
 import { 
-  Star, MapPin, User, Phone, MessageCircle, Mail, ChevronRight, 
+  Star, MapPin, User, Phone, MessageCircle, ChevronRight, 
   AlertCircle, ImageOff, Flag
 } from 'lucide-vue-next'
 import ReportModal from '@/components/ReportModal.vue'
@@ -261,6 +275,7 @@ const relatedProperties = ref<any[]>([])
 const loading = ref(true)
 const currentImage = ref('')
 const showReportModal = ref(false)
+const showMessageModal = ref(false)
 
 const transactionTypeClass = computed(() => {
   return property.value?.transaction_type === 'venta' ? 'bg-green-500' : 'bg-blue-500'
@@ -339,13 +354,7 @@ const openWhatsApp = () => {
   }
 }
 
-const sendEmail = () => {
-  if (property.value?.profiles?.email) {
-    const subject = `Interés en: ${property.value.title}`
-    const body = `Hola,\n\nEstoy interesado en tu propiedad "${property.value.title}" publicada en PubliNet.\n\nPor favor, contáctame para más información.\n\nGracias.`
-    window.open(`mailto:${property.value.profiles.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
-  }
-}
+
 
 const handleReported = () => {
   showReportModal.value = false

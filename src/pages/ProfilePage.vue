@@ -214,15 +214,46 @@
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             ]"
           >
-            <component :is="tab.icon" class="w-4 h-4 mr-2 inline" />
+            <component :is="iconComponents[tab.icon]" class="w-4 h-4 mr-2 inline" />
             {{ tab.name }}
           </button>
         </nav>
       </div>
 
       <div class="p-6">
+        <!-- Messages Tab -->
+        <div v-if="activeTab === 'messages'">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Mis Mensajes</h2>
+          </div>
+          
+          <div class="flex border-b border-gray-200 mb-6">
+            <button
+              v-for="tab in messageTabs"
+              :key="tab.id"
+              @click="activeMessageTab = tab.id"
+              :class="[
+                'px-4 py-2 text-sm font-medium border-b-2',
+                activeMessageTab === tab.id 
+                  ? 'border-primary-500 text-primary-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              ]"
+            >
+              {{ tab.name }}
+              <span 
+                v-if="tab.id === 'inbox' && unreadCount > 0"
+                class="ml-1.5 py-0.5 px-1.5 rounded-full bg-primary-100 text-primary-800 text-xs font-medium"
+              >
+                {{ unreadCount }}
+              </span>
+            </button>
+          </div>
+          
+          <MessagesList :type="activeMessageTab" />
+        </div>
+        
         <!-- Products Tab -->
-        <div v-if="activeTab === 'products'">
+        <div v-else-if="activeTab === 'products'">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-semibold text-gray-900">Mis Productos</h2>
             <router-link
@@ -426,11 +457,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  User, Package, ShoppingCart, Star, Plus, LogOut, Loader2, ImageOff, Home, Wrench 
+  User, Package, ShoppingCart, Star, Plus, LogOut, Loader2, 
+  ImageOff, Home, Wrench, Inbox, Heart, Settings
 } from 'lucide-vue-next'
+import MessagesList from '@/components/MessagesList.vue'
 import { useAuth } from '../composables/useAuth'
 import { useProducts } from '../composables/useProducts'
 import { supabase } from '../lib/supabase'
@@ -439,7 +472,18 @@ const router = useRouter()
 const { profile, loading, updateProfile, signOut } = useAuth()
 const { deleteProduct: deleteProductFromStore } = useProducts()
 
-const activeTab = ref('products')
+const activeTab = ref('messages')
+const activeMessageTab = ref('inbox')
+const messageTabs = [
+  { id: 'inbox', name: 'Recibidos' },
+  { id: 'sent', name: 'Enviados' }
+]
+
+const unreadCount = computed(() => {
+  // Aquí deberías obtener el conteo de mensajes no leídos
+  // Por ahora, devolvemos 0 como marcador de posición
+  return 0
+})
 const userProducts = ref<any[]>([])
 const userProperties = ref<any[]>([])
 const userServices = ref<any[]>([])
@@ -451,16 +495,35 @@ const userStats = ref({
   rating: 5.0
 })
 
+// Define the type for our icon components
+interface IconComponents {
+  [key: string]: Component;
+}
+
+// Map of icon names to their components
+const iconComponents: IconComponents = {
+  Inbox,
+  Package,
+  Home,
+  Wrench,
+  Heart,
+  Settings
+}
+
 const tabs = [
-  { id: 'products', name: 'Productos', icon: Package },
-  { id: 'properties', name: 'Propiedades', icon: Home },
-  { id: 'services', name: 'Servicios', icon: Wrench }
+  { id: 'messages', name: 'Mensajes', icon: 'Inbox' },
+  { id: 'products', name: 'Productos', icon: 'Package' },
+  { id: 'properties', name: 'Propiedades', icon: 'Home' },
+  { id: 'services', name: 'Servicios', icon: 'Wrench' },
+  { id: 'favorites', name: 'Favoritos', icon: 'Heart' },
+  { id: 'settings', name: 'Configuración', icon: 'Settings' }
 ]
 
 const form = reactive({
   full_name: '',
   email: '',
   phone: '',
+  bio: '',
   location: ''
 })
 
@@ -552,6 +615,8 @@ const handleSignOut = async () => {
   await signOut()
   router.push('/')
 }
+
+
 
 const editProduct = (productId: string) => {
   router.push(`/product/${productId}/edit`)

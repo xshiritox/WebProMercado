@@ -105,21 +105,42 @@
             </span>
           </div>
           
-          <button 
-            @click="contactService"
-            class="w-full btn-primary justify-center"
-          >
-            <MessageCircle class="w-4 h-4 mr-2" />
-            Contactar
-          </button>
+          <!-- Botones de contacto -->
+          <div class="space-y-3">
+            <button
+              v-if="service.profile?.phone"
+              @click="callOwner"
+              class="w-full btn-primary justify-center"
+            >
+              <Phone class="w-4 h-4 mr-2" />
+              Llamar al Propietario
+            </button>
             
-          <button
-            @click="showReportModal = true"
-            class="w-full text-red-600 hover:bg-red-50 border border-red-200 font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center mt-2"
-          >
-            <Flag class="w-4 h-4" />
-            Reportar este servicio
-          </button>
+            <button
+              v-if="service.profile?.phone"
+              @click="openWhatsApp"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <MessageCircle class="w-4 h-4" />
+              Contactar por WhatsApp
+            </button>
+            
+            <button
+              @click="showMessageModal = true"
+              class="w-full btn-outline justify-center"
+            >
+              <Mail class="w-4 h-4 mr-2" />
+              Enviar Mensaje
+            </button>
+            
+            <button
+              @click="showReportModal = true"
+              class="w-full text-red-600 hover:bg-red-50 border border-red-200 font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 mt-2"
+            >
+              <Flag class="w-4 h-4" />
+              Reportar este servicio
+            </button>
+          </div>
         </div>
 
         <!-- Provider Info -->
@@ -164,6 +185,19 @@
       @close="showReportModal = false"
       @reported="handleReported"
     />
+    
+    <!-- Message Modal -->
+    <MessageModal
+      v-if="service && service.profile"
+      :is-open="showMessageModal"
+      :recipient-id="service.user_id"
+      :recipient-name="service.profile.full_name"
+      item-type="service"
+      :item-id="service.id"
+      :item-title="service.title"
+      @close="showMessageModal = false"
+      @sent="() => showMessageModal = false"
+    />
   </div>
 </template>
 
@@ -171,20 +205,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { 
-  AlertCircle, RefreshCw, Wrench, Calendar, Clock, MapPin, 
-  MessageCircle, Flag, Star, Check
+  Wrench, Calendar, Clock, MapPin, User, Star, Check, Flag, MessageCircle, 
+  RefreshCw, AlertCircle, Phone, Mail
 } from 'lucide-vue-next'
 import ReportModal from '@/components/ReportModal.vue'
+import MessageModal from '@/components/MessageModal.vue'
 import { supabase } from '../lib/supabase'
-import { useToast } from 'vue-toastification'
 
 const route = useRoute()
-const toast = useToast()
 
-const service = ref<any>(null)
-const loading = ref(true)
-const error = ref<string | null>(null)
 const showReportModal = ref(false)
+const showMessageModal = ref(false)
+const loading = ref(true)
+const error = ref('')
+const service = ref<any>(null)
 
 const daysOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
@@ -205,7 +239,7 @@ const orderedAvailability = computed(() => {
 const loadService = async () => {
   try {
     loading.value = true
-    error.value = null
+    error.value = ''
     
     // Primero obtenemos el servicio
     const { data: serviceData, error: serviceError } = await supabase
@@ -268,23 +302,21 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const contactService = () => {
-  if (!service.value?.profile?.phone) {
-    toast.warning('Este proveedor no ha proporcionado información de contacto')
-    return
+const callOwner = () => {
+  if (service.value?.profile?.phone) {
+    window.open(`tel:${service.value.profile.phone}`)
   }
-  
-  // Formatear el número de teléfono (eliminar espacios, guiones, etc.)
-  const phoneNumber = service.value.profile.phone.replace(/[^\d+]/g, '')
-  
-  // Crear mensaje predeterminado
-  const message = encodeURIComponent(
-    `Hola, estoy interesado en tu servicio "${service.value.title}" en PubliNet.`
-  )
-  
-  // Abrir WhatsApp
-  window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank')
 }
+
+const openWhatsApp = () => {
+  if (service.value?.profile?.phone) {
+    const message = `Hola, estoy interesado en tu servicio "${service.value.title}" publicado en PubliNet.`
+    const phone = service.value.profile.phone.replace(/\D/g, '')
+    window.open(`https://wa.me/57${phone}?text=${encodeURIComponent(message)}`)
+  }
+}
+
+// Función eliminada - Ahora usamos los botones específicos de contacto
 
 const handleReported = () => {
   showReportModal.value = false

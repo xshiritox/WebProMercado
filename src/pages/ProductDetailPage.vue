@@ -187,11 +187,11 @@
             </button>
             
             <button
-              @click="sendEmail"
+              @click="showMessageModal = true"
               class="w-full btn-outline justify-center"
             >
-              <Mail class="w-4 h-4" />
-              Enviar Email
+              <MessageCircle class="w-4 h-4" />
+              Enviar Mensaje
             </button>
             
             <button
@@ -233,6 +233,19 @@
       @close="showReportModal = false"
       @reported="handleReported"
     />
+    
+    <!-- Message Modal -->
+    <MessageModal
+      v-if="product"
+      :is-open="showMessageModal"
+      :recipient-id="product.user_id"
+      :recipient-name="product.profiles?.full_name || 'Vendedor'"
+      item-type="product"
+      :item-id="product.id"
+      :item-title="product.title"
+      @close="showMessageModal = false"
+      @sent="handleMessageSent"
+    />
   </div>
 </template>
 
@@ -240,9 +253,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { 
-  Star, MapPin, User, Phone, MessageCircle, Mail, ChevronRight, 
-  AlertCircle, ImageOff, Flag 
+  Star, MapPin, User, Phone, MessageCircle, ChevronRight, 
+  AlertCircle, ImageOff, Flag
 } from 'lucide-vue-next'
+import MessageModal from '@/components/MessageModal.vue'
 import ReportModal from '@/components/ReportModal.vue'
 import ProductCard from '../components/ProductCard.vue'
 import { useProducts } from '../composables/useProducts'
@@ -255,6 +269,7 @@ const relatedProducts = ref<any[]>([])
 const loading = ref(true)
 const currentImage = ref('')
 const showReportModal = ref(false)
+const showMessageModal = ref(false)
 
 const conditionClass = computed(() => {
   switch (product.value?.condition) {
@@ -338,15 +353,15 @@ const openWhatsApp = () => {
   }
 }
 
-const sendEmail = () => {
-  if (product.value?.profiles?.email) {
-    window.location.href = `mailto:${product.value.profiles.email}?subject=Consulta sobre: ${encodeURIComponent(product.value.title)}`
-  }
-}
 
 const handleReported = () => {
   showReportModal.value = false
   // Aquí podrías mostrar un mensaje de éxito si lo deseas
+}
+
+const handleMessageSent = () => {
+  // Aquí podrías mostrar un mensaje de éxito si lo deseas
+  showMessageModal.value = false
 }
 
 onMounted(async () => {
