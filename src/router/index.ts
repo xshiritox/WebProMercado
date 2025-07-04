@@ -112,7 +112,7 @@ export const routes: RouteRecordRaw[] = [
     name: 'admin',
     component: AdminPage,
     meta: { requiresAuth: true, requiresAdmin: true },
-    beforeEnter: async (to, from, next) => {
+    beforeEnter: async (_to, _from, next) => {
       const { isAuthenticated, isAdmin, profile } = useAuth()
       
       // Verificar autenticación
