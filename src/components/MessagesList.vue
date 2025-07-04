@@ -13,14 +13,16 @@
       <div 
         v-for="message in messages" 
         :key="message.id"
-        @click="openMessage(message)"
         :class="[ 
-          'border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md',
+          'border rounded-lg p-4 transition-all hover:shadow-md group',
           !message.read ? 'border-primary-300 bg-primary-50' : 'border-gray-200'
         ]"
       >
         <div class="flex justify-between items-start">
-          <div class="flex-1 min-w-0">
+          <div 
+            class="flex-1 min-w-0 cursor-pointer"
+            @click="openMessage(message)"
+          >
             <div class="flex items-center gap-2">
               <h3 class="text-sm font-medium text-gray-900 truncate">
                 {{ message.sender?.full_name || 'Usuario' }}
@@ -46,8 +48,19 @@
             </div>
           </div>
           
-          <div v-if="!message.read" class="ml-2">
-            <span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-primary-600"></span>
+          <div class="flex items-start gap-2">
+            <button
+              @click.stop="confirmDelete(message.id)"
+              :disabled="isDeleting[message.id]"
+              class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              :title="isDeleting[message.id] ? 'Eliminando...' : 'Eliminar mensaje'"
+            >
+              <Trash2 v-if="!isDeleting[message.id]" class="w-4 h-4" />
+              <span v-else class="loading loading-spinner loading-xs"></span>
+            </button>
+            <div v-if="!message.read" class="ml-1">
+              <span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-primary-600"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -56,16 +69,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useMessages } from '../composables/useMessages'
 import { useToast } from 'vue-toastification'
-import { Inbox } from 'lucide-vue-next'
+import { Inbox, Trash2 } from 'lucide-vue-next'
 
 // Props are defined but not used in this version
 // Keeping the props for future use
 
 const toast = useToast()
-const { messages, loading, loadMessages, markAsRead } = useMessages()
+const { messages, loading, loadMessages, markAsRead, deleteMessage } = useMessages()
 
 const getItemType = (message: any) => {
   if (message.product_id) return 'Producto'
@@ -104,6 +117,29 @@ const openMessage = async (message: any) => {
     
   } catch (error: any) {
     toast.error(error.message || 'Error al abrir el mensaje')
+  }
+}
+
+const isDeleting = ref<{[key: string]: boolean}>({});
+
+const confirmDelete = async (messageId: string) => {
+  if (!confirm('¿Estás seguro de que quieres eliminar este mensaje? Esta acción no se puede deshacer.')) {
+    return;
+  }
+
+  isDeleting.value[messageId] = true;
+  
+  try {
+    await deleteMessage(messageId);
+    toast.success('Mensaje eliminado correctamente');
+    
+    // Actualizar la lista de mensajes
+    await loadMessages();
+  } catch (error: any) {
+    console.error('Error al eliminar mensaje:', error);
+    toast.error(error.message || 'Ocurrió un error al eliminar el mensaje');
+  } finally {
+    isDeleting.value[messageId] = false;
   }
 }
 

@@ -16,7 +16,8 @@ import ServicesPage from '../pages/ServicesPage.vue'
 import ServiceDetailPage from '../pages/ServiceDetailPage.vue'
 import PostServicePage from '../pages/PostServicePage.vue'
 import EditServicePage from '../pages/EditServicePage.vue'
-import AdminPage from '../pages/AdminPage.vue'
+// Carga diferida del componente AdminPage
+const AdminPage = () => import('../pages/AdminPage.vue')
 import NotFoundPage from '../pages/NotFoundPage.vue'
 
 export const routes: RouteRecordRaw[] = [

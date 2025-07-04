@@ -25,8 +25,10 @@
             <Package class="w-6 h-6 text-secondary-600" />
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">Total Productos</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.totalProducts }}</p>
+            <p class="text-sm font-medium text-gray-600">Total Publicaciones</p>
+            <p class="text-2xl font-bold text-gray-900">
+              {{ (stats.totalProducts || 0) + (stats.totalProperties || 0) + (stats.totalServices || 0) }}
+            </p>
           </div>
         </div>
       </div>
@@ -34,11 +36,13 @@
       <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex items-center">
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-            <DollarSign class="w-6 h-6 text-green-600" />
+            <CheckCircle2 class="w-6 h-6 text-green-600" />
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">Productos Activos</p>
-            <p class="text-2xl font-bold text-gray-900">{{ stats.activeProducts }}</p>
+            <p class="text-sm font-medium text-gray-600">Publicaciones Activas</p>
+            <p class="text-2xl font-bold text-gray-900">
+              {{ (stats.activeProducts || 0) + (stats.activeProperties || 0) + (stats.activeServices || 0) }}
+            </p>
           </div>
         </div>
       </div>
@@ -174,67 +178,275 @@
           </div>
         </div>
 
-        <!-- Products Tab -->
-        <div v-else-if="activeTab === 'products'">
+        <!-- Properties Tab -->
+        <div v-else-if="activeTab === 'properties'" class="bg-white rounded-lg shadow p-6">
           <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-semibold text-gray-900">Gestión de Productos</h2>
-            <div class="flex gap-2">
-              <select
-                v-model="productStatusFilter"
-                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            <h2 class="text-xl font-semibold text-gray-800">Gestión de Propiedades</h2>
+            <div class="relative">
+              <input
+                v-model="propertySearch"
+                type="text"
+                placeholder="Buscar propiedades..."
+                class="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="">Todos los estados</option>
-                <option value="active">Activos</option>
-                <option value="sold">Vendidos</option>
-                <option value="inactive">Inactivos</option>
-              </select>
+              <Search class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+            </div>
+          </div>
+          
+          <div class="mb-4 flex items-center space-x-4">
+            <select
+              v-model="propertyStatusFilter"
+              class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="">Todos los estados</option>
+              <option value="active">Activas</option>
+              <option value="sold">Vendidas</option>
+              <option value="rented">Arrendadas</option>
+              <option value="inactive">Inactivas</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Propiedad</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-for="property in filteredProperties" :key="property.id">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <img v-if="property.images && property.images.length > 0" 
+                             :src="property.images[0]" 
+                             :alt="property.title"
+                             class="h-10 w-10 rounded-full object-cover">
+                        <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <Home class="h-5 w-5 text-gray-400" />
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">{{ property.title }}</div>
+                        <div class="text-sm text-gray-500">ID: {{ property.id.slice(0, 8) }}...</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${{ formatPrice(property.price) }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ property.property_type }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ property.location }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span :class="getStatusClass(property.status)">
+                      {{ getStatusText(property.status) }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ formatDate(property.created_at) }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button @click="editProperty(property)" class="text-indigo-600 hover:text-indigo-900 mr-4">
+                      <Edit class="w-5 h-5" />
+                    </button>
+                    <button @click="deleteProperty(property.id)" class="text-red-600 hover:text-red-900">
+                      <Trash2 class="w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div v-if="filteredProperties.length === 0" class="text-center py-8 text-gray-500">
+            No se encontraron propiedades que coincidan con la búsqueda.
+          </div>
+        </div>
+
+        <!-- Services Tab -->
+        <div v-else-if="activeTab === 'services'" class="bg-white rounded-lg shadow p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">Gestión de Servicios</h2>
+            <div class="relative">
+              <input
+                v-model="serviceSearch"
+                type="text"
+                placeholder="Buscar servicios..."
+                class="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+              <Search class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+            </div>
+          </div>
+          
+          <div class="mb-4 flex items-center space-x-4">
+            <select
+              v-model="serviceStatusFilter"
+              class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="">Todos los estados</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-for="service in filteredServices" :key="service.id">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <img v-if="service.images && service.images.length > 0" 
+                             :src="service.images[0]" 
+                             :alt="service.title"
+                             class="h-10 w-10 rounded-full object-cover">
+                        <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <Wrench class="h-5 w-5 text-gray-400" />
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">{{ service.title }}</div>
+                        <div class="text-sm text-gray-500">ID: {{ service.id.slice(0, 8) }}...</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${{ formatPrice(service.price) }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ service.category }}
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                    {{ service.description }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span :class="getStatusClass(service.status)">
+                      {{ getStatusText(service.status) }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ formatDate(service.created_at) }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button @click="editService(service)" class="text-indigo-600 hover:text-indigo-900 mr-4">
+                      <Edit class="w-5 h-5" />
+                    </button>
+                    <button @click="deleteService(service.id)" class="text-red-600 hover:text-red-900">
+                      <Trash2 class="w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div v-if="filteredServices.length === 0" class="text-center py-8 text-gray-500">
+            No se encontraron servicios que coincidan con la búsqueda.
+          </div>
+        </div>
+
+        <!-- Products Tab -->
+        <div v-else-if="activeTab === 'products'" class="bg-white rounded-lg shadow p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">Gestión de Productos</h2>
+            <div class="relative">
               <input
                 v-model="productSearch"
                 type="text"
                 placeholder="Buscar productos..."
-                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-64"
               />
+              <Search class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
             </div>
+            <select
+              v-model="productStatusFilter"
+              class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">Todos los estados</option>
+              <option value="active">Activos</option>
+              <option value="sold">Vendidos</option>
+              <option value="inactive">Inactivos</option>
+            </select>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div
-              v-for="product in filteredProducts"
-              :key="product.id"
-              class="border border-gray-200 rounded-lg p-4"
-            >
-              <img
-                :src="product.images?.[0]"
-                :alt="product.title"
-                class="w-full h-32 object-cover rounded-lg mb-3"
-                v-if="product.images?.[0]"
-              />
-              <div v-else class="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                <ImageOff class="w-8 h-8" />
-              </div>
-              <h3 class="font-semibold text-gray-900 mb-1 truncate">{{ product.title }}</h3>
-              <p class="text-primary-600 font-bold mb-2">${{ formatPrice(product.price) }}</p>
-              <div class="flex items-center justify-between text-sm text-gray-600 mb-3">
-                <span>{{ product.category }}</span>
-                <span :class="getStatusClass(product.status)">
-                  {{ getStatusText(product.status) }}
-                </span>
-              </div>
-              <div class="flex gap-2">
-                <button
-                  @click="editProduct(product)"
-                  class="flex-1 text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md transition-colors"
-                >
-                  Editar
-                </button>
-                <button
-                  @click="deleteProduct(product.id)"
-                  class="flex-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md transition-colors"
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <img v-if="product.images?.[0]" class="h-10 w-10 rounded-full object-cover" :src="product.images[0]" :alt="product.title" />
+                        <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <ImageOff class="h-5 w-5 text-gray-400" />
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">{{ product.title }}</div>
+                        <div class="text-sm text-gray-500">{{ product.description?.substring(0, 30) }}{{ product.description?.length > 30 ? '...' : '' }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ product.category }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600">
+                    ${{ formatPrice(product.price) }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span :class="`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(product.status)}`">
+                      {{ getStatusText(product.status) }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ formatDate(product.created_at) }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button @click="editProduct(product)" class="text-indigo-600 hover:text-indigo-900 mr-4">
+                      <Edit class="w-5 h-5" />
+                    </button>
+                    <button @click="deleteProduct(product.id)" class="text-red-600 hover:text-red-900">
+                      <Trash2 class="w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-if="filteredProducts.length === 0" class="text-center py-8 text-gray-500">
+            No se encontraron productos que coincidan con la búsqueda.
           </div>
         </div>
 
@@ -356,105 +568,13 @@
         </div>
 
         <!-- Settings Tab -->
-        <div v-else-if="activeTab === 'settings'">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6">Configuración del Sitio</h2>
-          
-          <div class="space-y-6">
-            <div class="bg-white shadow rounded-lg p-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Configuración General</h3>
-              
-              <div class="space-y-4">
-                <div>
-                  <label for="site-name" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Sitio</label>
-                  <input
-                    id="site-name"
-                    type="text"
-                    v-model="siteSettings.name"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  />
-                </div>
-                
-                <div>
-                  <label for="site-description" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                  <textarea
-                    id="site-description"
-                    v-model="siteSettings.description"
-                    rows="3"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  ></textarea>
-                </div>
-                
-                <div>
-                  <label for="site-email" class="block text-sm font-medium text-gray-700 mb-1">Email de Contacto</label>
-                  <input
-                    id="site-email"
-                    type="email"
-                    v-model="siteSettings.contactEmail"
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  />
-                </div>
-              </div>
-              
-              <div class="mt-6">
-                <button
-                  @click="saveSettings"
-                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                >
-                  Guardar Cambios
-                </button>
-              </div>
-            </div>
-            
-            <div class="bg-white shadow rounded-lg p-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Notificaciones</h3>
-              
-              <div class="space-y-4">
-                <div class="flex items-start">
-                  <div class="flex items-center h-5">
-                    <input
-                      id="email-notifications"
-                      type="checkbox"
-                      v-model="notificationSettings.email"
-                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    />
-                  </div>
-                  <div class="ml-3 text-sm">
-                    <label for="email-notifications" class="font-medium text-gray-700">Habilitar notificaciones por correo</label>
-                    <p class="text-gray-500">Recibir alertas importantes por correo electrónico</p>
-                  </div>
-                </div>
-                
-                <div class="flex items-start">
-                  <div class="flex items-center h-5">
-                    <input
-                      id="report-notifications"
-                      type="checkbox"
-                      v-model="notificationSettings.newReports"
-                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    />
-                  </div>
-                  <div class="ml-3 text-sm">
-                    <label for="report-notifications" class="font-medium text-gray-700">Notificar nuevos reportes</label>
-                    <p class="text-gray-500">Recibir notificaciones cuando se reporte contenido inapropiado</p>
-                  </div>
-                </div>
-                
-                <div class="flex items-start">
-                  <div class="flex items-center h-5">
-                    <input
-                      id="product-approvals"
-                      type="checkbox"
-                      v-model="notificationSettings.productApprovals"
-                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    />
-                  </div>
-                  <div class="ml-3 text-sm">
-                    <label for="product-approvals" class="font-medium text-gray-700">Aprobación de productos</label>
-                    <p class="text-gray-500">Notificar cuando se necesite aprobar nuevos productos</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div v-else-if="activeTab === 'settings'" class="bg-white shadow rounded-lg p-8 text-center">
+          <div class="text-gray-400">
+            <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Configuración no disponible</h3>
+            <p class="mt-1 text-sm text-gray-500">La sección de configuración está actualmente en desarrollo.</p>
           </div>
         </div>
       </div>
@@ -464,22 +584,31 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { 
-  Users, 
-  Package, 
-  DollarSign, 
-  AlertTriangle, 
-  Search, 
-  User, 
-  ImageOff 
-} from 'lucide-vue-next'
+// Importaciones dinámicas de íconos
+import { defineAsyncComponent } from 'vue'
+
+// Importaciones sincrónicas para íconos críticos
+import { Search } from 'lucide-vue-next'
+
+// Componentes asíncronos para íconos
+const Users = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Users))
+const User = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.User))
+const Package = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Package))
+const Home = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Home))
+const Wrench = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Wrench))
+const Edit = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Edit))
+const Trash2 = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Trash2))
+const ImageOff = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.ImageOff))
+const AlertTriangle = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.AlertTriangle))
+const CheckCircle2 = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.CheckCircle2))
 import { supabase } from '../lib/supabase'
 
 // Tipos de datos
-interface User {
+interface UserType {
   id: string
   email: string
   full_name: string
+  phone?: string
   created_at: string
   product_count?: number
   badge?: string
@@ -490,9 +619,35 @@ interface Product {
   title: string
   price: number
   category: string
+  description: string
   status: string
   images?: string[]
   created_at: string
+  type: 'product'
+}
+
+interface Property {
+  id: string
+  title: string
+  price: number
+  property_type: string  // casa, apartamento, etc.
+  status: string
+  location: string
+  images?: string[]
+  created_at: string
+  type: 'property'
+}
+
+interface Service {
+  id: string
+  title: string
+  price: number
+  category: string
+  status: string
+  description: string
+  images?: string[]
+  created_at: string
+  type: 'service'
 }
 
 interface Report {
@@ -514,63 +669,104 @@ interface Report {
 const activeTab = ref('users')
 const userSearch = ref('')
 const productSearch = ref('')
+const propertySearch = ref('')
+const serviceSearch = ref('')
 const productStatusFilter = ref('')
-const reportStatusFilter = ref('pending')
-const reportTypeFilter = ref('all')
+const propertyStatusFilter = ref('')
+const serviceStatusFilter = ref('')
+const reportTypeFilter = ref('')
+const reportStatusFilter = ref('')
+// Configuración del sitio (comentado por ahora)
+// const siteTitle = ref('WebProMercado')
+// const siteDescription = ref('Tu mercado en línea de confianza')
+// const maintenanceMode = ref(false)
 
+// Datos
 const stats = ref({
   totalUsers: 0,
   totalProducts: 0,
   activeProducts: 0,
+  totalProperties: 0,
+  activeProperties: 0,
+  totalServices: 0,
+  activeServices: 0,
+  totalReports: 0,
   pendingReports: 0
 })
 
-const users = ref<User[]>([])
+const users = ref<UserType[]>([])
 const products = ref<Product[]>([])
+const properties = ref<Property[]>([])
+const services = ref<Service[]>([])
 const reports = ref<Report[]>([])
 
 const tabs = [
   { id: 'users', name: 'Usuarios', icon: 'Users' },
   { id: 'products', name: 'Productos', icon: 'Package' },
+  { id: 'properties', name: 'Propiedades', icon: 'Home' },
+  { id: 'services', name: 'Servicios', icon: 'Wrench' },
   { id: 'reports', name: 'Reportes', icon: 'AlertTriangle' },
   { id: 'settings', name: 'Configuración', icon: 'Settings' }
 ]
 
-const siteSettings = ref({
-  name: 'WebProMercado',
-  description: 'Mercado en línea para comprar y vender productos',
-  contactEmail: 'contacto@webpromercado.com'
-})
 
-const notificationSettings = ref({
-  email: true,
-  newReports: true,
-  productApprovals: true
-})
-
-// Computed properties
+// Propiedades computadas
 const filteredUsers = computed(() => {
-  if (!userSearch.value) return users.value
-  
-  const query = userSearch.value.toLowerCase()
-  return users.value.filter(user =>
-    (user.full_name?.toLowerCase().includes(query) || '') ||
-    user.email.toLowerCase().includes(query)
-  )
+  return users.value.filter(user => {
+    const searchTerm = userSearch.value.toLowerCase()
+    return (
+      user.full_name.toLowerCase().includes(searchTerm) ||
+      user.email.toLowerCase().includes(searchTerm) ||
+      user.phone?.toLowerCase().includes(searchTerm) ||
+      user.id.toLowerCase().includes(searchTerm)
+    )
+  })
 })
 
 const filteredProducts = computed(() => {
-  let filtered = products.value
+  return products.value.filter(product => {
+    const matchesSearch = product.title.toLowerCase().includes(productSearch.value.toLowerCase()) ||
+                         product.description.toLowerCase().includes(productSearch.value.toLowerCase()) ||
+                         product.id.toLowerCase().includes(productSearch.value.toLowerCase())
+    
+    const matchesStatus = !productStatusFilter.value || product.status === productStatusFilter.value
+    
+    return matchesSearch && matchesStatus
+  })
+})
 
-  if (productStatusFilter.value) {
-    filtered = filtered.filter(p => p.status === productStatusFilter.value)
+const filteredProperties = computed(() => {
+  let filtered = properties.value
+
+  if (propertyStatusFilter.value) {
+    filtered = filtered.filter(p => p.status === propertyStatusFilter.value)
   }
 
-  if (productSearch.value) {
-    const query = productSearch.value.toLowerCase()
+  if (propertySearch.value) {
+    const query = propertySearch.value.toLowerCase()
     filtered = filtered.filter(p =>
       p.title.toLowerCase().includes(query) ||
-      (p.category?.toLowerCase().includes(query) || '')
+      (p.location?.toLowerCase().includes(query) || '') ||
+      (p.property_type?.toLowerCase().includes(query) || '')
+    )
+  }
+
+  return filtered
+})
+
+const filteredServices = computed(() => {
+  let filtered = services.value
+
+  if (serviceStatusFilter.value) {
+    filtered = filtered.filter(s => s.status === serviceStatusFilter.value)
+  }
+
+  if (serviceSearch.value) {
+    const query = serviceSearch.value.toLowerCase()
+    filtered = filtered.filter(s =>
+      s.title.toLowerCase().includes(query) ||
+      (s.category?.toLowerCase().includes(query) || '') ||
+      (s.description?.toLowerCase().includes(query) || '')
     )
   }
 
@@ -594,32 +790,59 @@ const filteredReports = computed(() => {
 // Métodos
 const loadStats = async () => {
   try {
-    // Obtener estadísticas de usuarios
+    // Cargar estadísticas de usuarios
     const { count: userCount } = await supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
 
-    // Obtener estadísticas de productos
-    const { count: productCount } = await supabase
+    // Cargar estadísticas de productos
+    const { data: productsData, error: productsError } = await supabase
       .from('products')
-      .select('*', { count: 'exact', head: true })
+      .select('id, status')
+    
+    if (productsError) throw productsError
 
-    const { count: activeProductCount } = await supabase
-      .from('products')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'active')
+    // Cargar estadísticas de propiedades
+    const { data: propertiesData, error: propertiesError } = await supabase
+      .from('properties')
+      .select('id, status')
+    
+    if (propertiesError) throw propertiesError
 
-    // Obtener reportes pendientes
-    const { count: pendingReportsCount } = await supabase
+    // Cargar estadísticas de servicios
+    const { data: servicesData, error: servicesError } = await supabase
+      .from('services')
+      .select('id, status')
+    
+    if (servicesError) throw servicesError
+
+    // Cargar reportes
+    const { data: reportsData, error: reportsError } = await supabase
       .from('reports')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending')
+      .select('id, status')
+    
+    if (reportsError) throw reportsError
+
+    // Inicializar contadores
+    const totalProducts = productsData?.length || 0
+    const activeProducts = productsData?.filter(p => p.status === 'active').length || 0
+    const totalProperties = propertiesData?.length || 0
+    const activeProperties = propertiesData?.filter(p => p.status === 'active').length || 0
+    const totalServices = servicesData?.length || 0
+    const activeServices = servicesData?.filter(s => s.status === 'active').length || 0
+    const totalReports = reportsData?.length || 0
+    const pendingReports = reportsData?.filter(r => r.status === 'pending').length || 0
 
     stats.value = {
       totalUsers: userCount || 0,
-      totalProducts: productCount || 0,
-      activeProducts: activeProductCount || 0,
-      pendingReports: pendingReportsCount || 0
+      totalProducts,
+      activeProducts,
+      totalProperties,
+      activeProperties,
+      totalServices,
+      activeServices,
+      totalReports,
+      pendingReports
     }
   } catch (error) {
     console.error('Error cargando estadísticas:', error)
@@ -648,9 +871,37 @@ const loadProducts = async () => {
       .order('created_at', { ascending: false })
     
     if (error) throw error
-    products.value = data || []
+    products.value = (data || []).map(p => ({ ...p, type: 'product' }))
   } catch (error) {
     console.error('Error cargando productos:', error)
+  }
+}
+
+const loadProperties = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    properties.value = (data || []).map(p => ({ ...p, type: 'property' }))
+  } catch (error) {
+    console.error('Error cargando propiedades:', error)
+  }
+}
+
+const loadServices = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) throw error
+    services.value = (data || []).map(s => ({ ...s, type: 'service' }))
+  } catch (error) {
+    console.error('Error cargando servicios:', error)
   }
 }
 
@@ -726,17 +977,6 @@ const deleteReport = async (reportId: string) => {
   }
 }
 
-const saveSettings = async () => {
-  try {
-    // Aquí iría la lógica para guardar la configuración en la base de datos
-    // Por ahora, solo mostramos un mensaje de éxito
-    alert('Configuración guardada correctamente')
-  } catch (error) {
-    console.error('Error guardando configuración:', error)
-    alert('Error al guardar la configuración')
-  }
-}
-
 // Funciones de utilidad
 const getReportTypeText = (type: string) => {
   const types: { [key: string]: string } = {
@@ -783,6 +1023,7 @@ const getStatusText = (status: string) => {
   switch (status) {
     case 'active': return 'Activo'
     case 'sold': return 'Vendido'
+    case 'rented': return 'Arrendado'
     case 'inactive': return 'Inactivo'
     default: return status
   }
@@ -802,7 +1043,7 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const editUser = (user: User) => {
+const editUser = (user: UserType) => {
   console.log('Editar usuario:', user)
   // Implementar lógica de edición
 }
@@ -819,7 +1060,7 @@ const deleteUser = async (userId: string) => {
     if (error) throw error
     
     // Actualizar lista de usuarios
-    users.value = users.value.filter(u => u.id !== userId)
+    users.value = users.value.filter((u: UserType) => u.id !== userId)
     stats.value.totalUsers--
     
     alert('Usuario eliminado correctamente')
@@ -861,12 +1102,78 @@ const deleteProduct = async (productId: string) => {
   }
 }
 
+const editProperty = (property: Property) => {
+  console.log('Editar propiedad:', property)
+  // Implementar lógica de edición
+}
+
+const deleteProperty = async (propertyId: string) => {
+  if (!confirm('¿Estás seguro de que quieres eliminar esta propiedad?')) return
+  
+  try {
+    const { error } = await supabase
+      .from('properties')
+      .delete()
+      .eq('id', propertyId)
+    
+    if (error) throw error
+    
+    // Actualizar lista de propiedades
+    const deletedProperty = properties.value.find(p => p.id === propertyId)
+    if (deletedProperty?.status === 'active') {
+      stats.value.activeProperties--
+    }
+    
+    properties.value = properties.value.filter(p => p.id !== propertyId)
+    stats.value.totalProperties--
+    
+    alert('Propiedad eliminada correctamente')
+  } catch (error) {
+    console.error('Error eliminando propiedad:', error)
+    alert('Error al eliminar la propiedad')
+  }
+}
+
+const editService = (service: Service) => {
+  console.log('Editar servicio:', service)
+  // Implementar lógica de edición
+}
+
+const deleteService = async (serviceId: string) => {
+  if (!confirm('¿Estás seguro de que quieres eliminar este servicio?')) return
+  
+  try {
+    const { error } = await supabase
+      .from('services')
+      .delete()
+      .eq('id', serviceId)
+    
+    if (error) throw error
+    
+    // Actualizar lista de servicios
+    const deletedService = services.value.find(s => s.id === serviceId)
+    if (deletedService?.status === 'active') {
+      stats.value.activeServices--
+    }
+    
+    services.value = services.value.filter(s => s.id !== serviceId)
+    stats.value.totalServices--
+    
+    alert('Servicio eliminado correctamente')
+  } catch (error) {
+    console.error('Error eliminando servicio:', error)
+    alert('Error al eliminar el servicio')
+  }
+}
+
 // Cargar datos al montar el componente
 onMounted(async () => {
   await Promise.all([
     loadStats(),
     loadUsers(),
     loadProducts(),
+    loadProperties(),
+    loadServices(),
     loadReports()
   ])
 })

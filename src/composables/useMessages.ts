@@ -95,20 +95,50 @@ export const useMessages = () => {
 
   const deleteMessage = async (messageId: string) => {
     try {
-      const { error } = await supabase
+      console.log('Intentando eliminar mensaje con ID:', messageId);
+      
+      // Primero verifiquemos si el mensaje existe y el usuario tiene permiso
+      const { data: messageData, error: fetchError } = await supabase
         .from('messages')
-        .delete()
+        .select('id, sender_id, recipient_id')
         .eq('id', messageId)
         .or(`sender_id.eq.${user.value?.id},recipient_id.eq.${user.value?.id}`)
+        .single();
 
-      if (error) throw error
+      if (fetchError || !messageData) {
+        throw new Error('No se pudo encontrar el mensaje o no tienes permiso para eliminarlo');
+      }
 
-      toast.success('Mensaje eliminado')
-      await loadMessages()
-      return true
+      // Intentar eliminar usando el método de actualización para marcar como eliminado
+      const { error: updateError } = await supabase
+        .from('messages')
+        .update({ 
+          deleted_at: new Date().toISOString(),
+          deleted_by: user.value?.id
+        })
+        .eq('id', messageId);
+
+      if (updateError) {
+        // Si falla el update, intentar con delete
+        console.log('Falló el update, intentando con delete directo');
+        const { error: deleteError } = await supabase
+          .from('messages')
+          .delete()
+          .eq('id', messageId);
+          
+        if (deleteError) throw deleteError;
+      }
+
+      // Actualizar la lista localmente
+      messages.value = messages.value.filter(msg => msg.id !== messageId);
+      
+      // Recargar mensajes desde el servidor
+      await loadMessages();
+      
+      return true;
     } catch (error: any) {
-      toast.error(error.message || 'Error al eliminar mensaje')
-      return false
+      console.error('Error en deleteMessage:', error);
+      throw error;
     }
   }
 
