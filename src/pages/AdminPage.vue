@@ -180,24 +180,24 @@
         </div>
 
         <!-- Properties Tab -->
-        <div v-else-if="activeTab === 'properties'" class="bg-white rounded-lg shadow p-6">
-          <div class="flex justify-between items-center mb-6">
+        <div v-else-if="activeTab === 'properties'" class="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h2 class="text-xl font-semibold text-gray-800">Gestión de Propiedades</h2>
-            <div class="relative">
+            <div class="relative w-full sm:w-auto">
               <input
                 v-model="propertySearch"
                 type="text"
                 placeholder="Buscar propiedades..."
-                class="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
               <Search class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
             </div>
           </div>
           
-          <div class="mb-4 flex items-center space-x-4">
+          <div class="mb-4 flex flex-wrap gap-2 sm:gap-4">
             <select
               v-model="propertyStatusFilter"
-              class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              class="w-full sm:w-auto border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="">Todos los estados</option>
               <option value="active">Activas</option>
@@ -207,66 +207,72 @@
             </select>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Propiedad</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="property in filteredProperties" :key="property.id">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <img v-if="property.images && property.images.length > 0" 
-                             :src="property.images[0]" 
-                             :alt="property.title"
-                             class="h-10 w-10 rounded-full object-cover">
-                        <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <Home class="h-5 w-5 text-gray-400" />
+          <div class="overflow-x-auto -mx-2 sm:mx-0">
+            <div class="min-w-full align-middle">
+              <div class="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50 hidden sm:table-header-group">
+                    <tr>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Propiedad</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Tipo</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Ubicación</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                      <th class="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-for="property in filteredProperties" :key="property.id" class="flex flex-col sm:table-row hover:bg-gray-50">
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <div class="flex-shrink-0 h-10 w-10">
+                            <img v-if="property.images && property.images.length > 0" 
+                                :src="property.images[0]" 
+                                :alt="property.title"
+                                class="h-10 w-10 rounded-full object-cover">
+                            <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                              <Home class="h-5 w-5 text-gray-400" />
+                            </div>
+                          </div>
+                          <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">{{ property.title }}</div>
+                            <div class="text-sm text-gray-500 sm:hidden">
+                              {{ property.property_type }} • {{ property.location }}
+                            </div>
+                            <div class="sm:hidden text-sm text-gray-500 mt-1">
+                              {{ formatDate(property.created_at) }}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">{{ property.title }}</div>
-                        <div class="text-sm text-gray-500">ID: {{ property.id.slice(0, 8) }}...</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${{ formatPrice(property.price) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ property.property_type }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ property.location }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span :class="getStatusClass(property.status)">
-                      {{ getStatusText(property.status) }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ formatDate(property.created_at) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button @click="editProperty(property)" class="text-indigo-600 hover:text-indigo-900 mr-4">
-                      <Edit class="w-5 h-5" />
-                    </button>
-                    <button @click="deleteProperty(property.id)" class="text-red-600 hover:text-red-900">
-                      <Trash2 class="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <span class="sm:hidden font-semibold mr-2">Precio:</span>
+                        ${{ formatPrice(property.price) }}
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                        {{ property.property_type }}
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
+                        {{ property.location }}
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <span :class="getStatusClass(property.status)" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                          {{ getStatusText(property.status) }}
+                        </span>
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        <button @click="editProperty(property)" class="text-indigo-600 hover:text-indigo-900" title="Editar">
+                          <Edit class="w-5 h-5" />
+                        </button>
+                        <button @click="deleteProperty(property.id)" class="text-red-600 hover:text-red-900" title="Eliminar">
+                          <Trash2 class="w-5 h-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
           
           <div v-if="filteredProperties.length === 0" class="text-center py-8 text-gray-500">
@@ -275,24 +281,24 @@
         </div>
 
         <!-- Services Tab -->
-        <div v-else-if="activeTab === 'services'" class="bg-white rounded-lg shadow p-6">
-          <div class="flex justify-between items-center mb-6">
+        <div v-else-if="activeTab === 'services'" class="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h2 class="text-xl font-semibold text-gray-800">Gestión de Servicios</h2>
-            <div class="relative">
+            <div class="relative w-full sm:w-auto">
               <input
                 v-model="serviceSearch"
                 type="text"
                 placeholder="Buscar servicios..."
-                class="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
               <Search class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
             </div>
           </div>
           
-          <div class="mb-4 flex items-center space-x-4">
+          <div class="mb-4 flex flex-wrap gap-2 sm:gap-4">
             <select
               v-model="serviceStatusFilter"
-              class="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              class="w-full sm:w-auto border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="">Todos los estados</option>
               <option value="active">Activos</option>
@@ -300,66 +306,72 @@
             </select>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="service in filteredServices" :key="service.id">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <img v-if="service.images && service.images.length > 0" 
-                             :src="service.images[0]" 
-                             :alt="service.title"
-                             class="h-10 w-10 rounded-full object-cover">
-                        <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <Wrench class="h-5 w-5 text-gray-400" />
+          <div class="overflow-x-auto -mx-2 sm:mx-0">
+            <div class="min-w-full align-middle">
+              <div class="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50 hidden sm:table-header-group">
+                    <tr>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Categoría</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Ubicación</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                      <th class="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-for="service in filteredServices" :key="service.id" class="flex flex-col sm:table-row hover:bg-gray-50">
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <div class="flex-shrink-0 h-10 w-10">
+                            <img v-if="service.images && service.images.length > 0" 
+                                 :src="service.images[0]" 
+                                 :alt="service.title"
+                                 class="h-10 w-10 rounded-full object-cover">
+                            <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                              <Settings class="h-5 w-5 text-gray-400" />
+                            </div>
+                          </div>
+                          <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">{{ service.title }}</div>
+                            <div class="text-sm text-gray-500 sm:hidden">
+                              {{ service.category }} • {{ service.location }}
+                            </div>
+                            <div class="sm:hidden text-sm text-gray-500 mt-1">
+                              {{ formatDate(service.created_at) }}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">{{ service.title }}</div>
-                        <div class="text-sm text-gray-500">ID: {{ service.id.slice(0, 8) }}...</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${{ formatPrice(service.price) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ service.category }}
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                    {{ service.description }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span :class="getStatusClass(service.status)">
-                      {{ getStatusText(service.status) }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ formatDate(service.created_at) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button @click="editService(service)" class="text-indigo-600 hover:text-indigo-900 mr-4">
-                      <Edit class="w-5 h-5" />
-                    </button>
-                    <button @click="deleteService(service.id)" class="text-red-600 hover:text-red-900">
-                      <Trash2 class="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <span class="sm:hidden font-semibold mr-2">Precio:</span>
+                        ${{ formatPrice(service.price) }}
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                        {{ service.category }}
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
+                        {{ service.location }}
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <span :class="getStatusClass(service.status)" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                          {{ getStatusText(service.status) }}
+                        </span>
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        <button @click="editService(service)" class="text-indigo-600 hover:text-indigo-900" title="Editar">
+                          <Edit class="w-5 h-5" />
+                        </button>
+                        <button @click="deleteService(service.id)" class="text-red-600 hover:text-red-900" title="Eliminar">
+                          <Trash2 class="w-5 h-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
           
           <div v-if="filteredServices.length === 0" class="text-center py-8 text-gray-500">
@@ -368,84 +380,92 @@
         </div>
 
         <!-- Products Tab -->
-        <div v-else-if="activeTab === 'products'" class="bg-white rounded-lg shadow p-6">
-          <div class="flex justify-between items-center mb-6">
+        <div v-else-if="activeTab === 'products'" class="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h2 class="text-xl font-semibold text-gray-800">Gestión de Productos</h2>
-            <div class="relative">
-              <input
-                v-model="productSearch"
-                type="text"
-                placeholder="Buscar productos..."
-                class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-64"
-              />
-              <Search class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+            <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
+              <div class="relative w-full sm:w-64">
+                <input
+                  v-model="productSearch"
+                  type="text"
+                  placeholder="Buscar productos..."
+                  class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <Search class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+              </div>
+              <select
+                v-model="productStatusFilter"
+                class="w-full sm:w-auto border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                <option value="">Todos los estados</option>
+                <option value="active">Activos</option>
+                <option value="sold">Vendidos</option>
+                <option value="inactive">Inactivos</option>
+              </select>
             </div>
-            <select
-              v-model="productStatusFilter"
-              class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">Todos los estados</option>
-              <option value="active">Activos</option>
-              <option value="sold">Vendidos</option>
-              <option value="inactive">Inactivos</option>
-            </select>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <img v-if="product.images?.[0]" class="h-10 w-10 rounded-full object-cover" :src="product.images[0]" :alt="product.title" />
-                        <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <ImageOff class="h-5 w-5 text-gray-400" />
+          <div class="overflow-x-auto -mx-2 sm:mx-0">
+            <div class="min-w-full align-middle">
+              <div class="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50 hidden sm:table-header-group">
+                    <tr>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Categoría</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                      <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                      <th class="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-for="product in filteredProducts" :key="product.id" class="flex flex-col sm:table-row hover:bg-gray-50">
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <div class="flex-shrink-0 h-10 w-10">
+                            <img v-if="product.images?.[0]" class="h-10 w-10 rounded-full object-cover" :src="product.images[0]" :alt="product.title" />
+                            <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                              <ImageOff class="h-5 w-5 text-gray-400" />
+                            </div>
+                          </div>
+                          <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">{{ product.title }}</div>
+                            <div class="text-sm text-gray-500 sm:hidden">
+                              {{ product.category }}
+                            </div>
+                            <div class="sm:hidden text-sm text-gray-500 mt-1">
+                              {{ formatDate(product.created_at) }}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">{{ product.title }}</div>
-                        <div class="text-sm text-gray-500">{{ product.description?.substring(0, 30) }}{{ product.description?.length > 30 ? '...' : '' }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ product.category }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600">
-                    ${{ formatPrice(product.price) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span :class="`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(product.status)}`">
-                      {{ getStatusText(product.status) }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ formatDate(product.created_at) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button @click="editProduct(product)" class="text-indigo-600 hover:text-indigo-900 mr-4">
-                      <Edit class="w-5 h-5" />
-                    </button>
-                    <button @click="deleteProduct(product.id)" class="text-red-600 hover:text-red-900">
-                      <Trash2 class="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                        {{ product.category }}
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600">
+                        <span class="sm:hidden font-semibold mr-2">Precio:</span>
+                        ${{ formatPrice(product.price) }}
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <span :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(product.status)}`">
+                          {{ getStatusText(product.status) }}
+                        </span>
+                      </td>
+                      <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        <button @click="editProduct(product)" class="text-indigo-600 hover:text-indigo-900" title="Editar">
+                          <Edit class="w-5 h-5" />
+                        </button>
+                        <button @click="deleteProduct(product.id)" class="text-red-600 hover:text-red-900" title="Eliminar">
+                          <Trash2 class="w-5 h-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-
+          
           <div v-if="filteredProducts.length === 0" class="text-center py-8 text-gray-500">
             No se encontraron productos que coincidan con la búsqueda.
           </div>
@@ -596,7 +616,6 @@ const Users = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.U
 const User = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.User))
 const Package = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Package))
 const Home = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Home))
-const Wrench = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Wrench))
 const Edit = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Edit))
 const Trash2 = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Trash2))
 const ImageOff = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.ImageOff))
@@ -646,6 +665,7 @@ interface Service {
   category: string
   status: string
   description: string
+  location: string
   images?: string[]
   created_at: string
   type: 'service'

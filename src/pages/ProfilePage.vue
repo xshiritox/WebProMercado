@@ -158,33 +158,7 @@
             </div>
 
             <div class="mt-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
-              
               <div class="space-y-3">
-                <router-link
-                  to="/post-product"
-                  class="w-full btn-primary justify-center"
-                >
-                  <Plus class="w-4 h-4" />
-                  Publicar Producto
-                </router-link>
-
-                <router-link
-                  to="/post-property"
-                  class="w-full btn-outline justify-center"
-                >
-                  <Plus class="w-4 h-4" />
-                  Publicar Propiedad
-                </router-link>
-
-                <router-link
-                  to="/post-service"
-                  class="w-full btn-outline justify-center"
-                >
-                  <Plus class="w-4 h-4" />
-                  Publicar Servicio
-                </router-link>
-
                 <button
                   @click="handleSignOut"
                   class="w-full btn-outline justify-center"
