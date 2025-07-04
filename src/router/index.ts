@@ -1,4 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
+import { useAuth } from '../composables/useAuth'
 import HomePage from '../pages/HomePage.vue'
 import LoginPage from '../pages/LoginPage.vue'
 import RegisterPage from '../pages/RegisterPage.vue'
@@ -110,7 +111,30 @@ export const routes: RouteRecordRaw[] = [
     path: '/admin',
     name: 'admin',
     component: AdminPage,
-    meta: { requiresAuth: true, requiresAdmin: true }
+    meta: { requiresAuth: true, requiresAdmin: true },
+    beforeEnter: async (to, from, next) => {
+      const { isAuthenticated, isAdmin, profile } = useAuth()
+      
+      // Verificar autenticación
+      if (!isAuthenticated.value) {
+        next('/login')
+        return
+      }
+      
+      // Verificar si el perfil está cargado
+      if (!profile.value) {
+        // Esperar un momento para que se cargue el perfil
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+      
+      // Verificar permisos de administrador
+      if (!isAdmin.value) {
+        next('/')
+        return
+      }
+      
+      next()
+    }
   },
   {
     path: '/:pathMatch(.*)*',
