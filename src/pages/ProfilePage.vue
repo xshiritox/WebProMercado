@@ -201,21 +201,22 @@
 
     <!-- Tabs for user content -->
     <div class="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
-      <div class="border-b border-gray-200">
-        <nav class="flex">
+      <div class="border-b border-gray-200 overflow-x-auto">
+        <nav class="flex w-max min-w-full">
           <button
             v-for="tab in tabs"
             :key="tab.id"
             @click="activeTab = tab.id"
             :class="[
-              'px-6 py-3 text-sm font-medium border-b-2 transition-colors',
+              'px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
+              'flex-shrink-0 flex items-center',
               activeTab === tab.id
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             ]"
           >
-            <component :is="iconComponents[tab.icon]" class="w-4 h-4 mr-2 inline" />
-            {{ tab.name }}
+            <component :is="iconComponents[tab.icon]" class="w-4 h-4 mr-1.5" />
+            <span class="text-xs sm:text-sm">{{ tab.name }}</span>
           </button>
         </nav>
       </div>
