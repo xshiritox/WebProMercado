@@ -12,21 +12,30 @@
         :alt="product.title"
         class="w-full h-full object-contain bg-white p-2"
       />
-      <div v-if="product.featured" class="absolute top-2 left-2">
-        <span
-          class="bg-secondary-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1"
-        >
-          <Star class="w-3 h-3" />
-          Destacado
-        </span>
+      <!-- Favorite Button -->
+      <div class="absolute top-2 right-2 bg-white rounded-full p-1 shadow cursor-pointer hover:bg-gray-100" @click.stop="toggleFavorite">
+        <Heart 
+          :class="[isFavorite ? 'text-red-500 fill-current' : 'text-gray-400']" 
+          class="w-5 h-5 transition-colors duration-200" 
+        />
       </div>
-      <div class="absolute top-2 right-2">
-        <span
-          :class="conditionClass"
-          class="px-2 py-1 rounded-full text-xs font-medium text-white"
-        >
-          {{ conditionText }}
-        </span>
+      <div class="absolute top-2 left-2 flex flex-col gap-2">
+        <div v-if="product.featured">
+          <span
+            class="bg-secondary-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1"
+          >
+            <Star class="w-3 h-3" />
+            Destacado
+          </span>
+        </div>
+        <div>
+          <span
+            :class="conditionClass"
+            class="px-2 py-1 rounded-full text-xs font-medium text-white"
+          >
+            {{ conditionText }}
+          </span>
+        </div>
       </div>
     </div>
 
@@ -87,14 +96,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Star, MapPin, Clock, User, ImageOff } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { Star, MapPin, Clock, User, ImageOff, Heart } from 'lucide-vue-next'
 
 interface Props {
   product: any
 }
 
 const props = defineProps<Props>()
+const isFavorite = ref(false)
+
+const toggleFavorite = (event: Event) => {
+  event.stopPropagation()
+  isFavorite.value = !isFavorite.value
+  // TODO: Add API call to save favorite state
+}
 
 const conditionClass = computed(() => {
   switch (props.product.condition) {

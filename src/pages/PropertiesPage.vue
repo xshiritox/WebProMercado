@@ -157,11 +157,22 @@
               {{ property.transaction_type === 'venta' ? 'Venta' : 'Alquiler' }}
             </span>
           </div>
-          <div v-if="property.featured" class="absolute top-2 right-2">
-            <span class="bg-secondary-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-              <Star class="w-3 h-3" />
-              Destacado
-            </span>
+          <div class="absolute top-2 right-2 flex flex-col items-end gap-2">
+            <div 
+              class="bg-white rounded-full p-1 shadow cursor-pointer hover:bg-gray-100" 
+              @click.stop="toggleFavorite(property.id)"
+            >
+              <Heart 
+                :class="[favoriteProperties[property.id] ? 'text-red-500 fill-current' : 'text-gray-400']" 
+                class="w-5 h-5 transition-colors duration-200" 
+              />
+            </div>
+            <div v-if="property.featured">
+              <span class="bg-secondary-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                <Star class="w-3 h-3" />
+                Destacado
+              </span>
+            </div>
           </div>
 
         </div>
@@ -221,8 +232,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useProperties } from '../composables/useProperties'
-import { Plus, MapPin, Bed, Bath, Star, Home, ImageOff, Clock } from 'lucide-vue-next'
+import { Plus, MapPin, Bed, Bath, Star, Home, ImageOff, Clock, Heart } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { onMounted } from 'vue'
 
@@ -238,6 +250,14 @@ const {
   setFilters,
   getProperties
 } = useProperties()
+
+// Track favorite state for each property
+const favoriteProperties = ref<Record<string, boolean>>({})
+
+const toggleFavorite = (propertyId: string) => {
+  favoriteProperties.value[propertyId] = !favoriteProperties.value[propertyId]
+  // TODO: Add API call to save favorite state
+}
 
 // Load properties when the component is mounted
 onMounted(() => {

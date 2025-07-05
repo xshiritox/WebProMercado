@@ -5,8 +5,13 @@
     </div>
 
     <div v-else-if="messages.length === 0" class="text-center py-8">
-      <Inbox class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-      <p class="text-gray-600">No tienes mensajes</p>
+      <component 
+        :is="type === 'inbox' ? Inbox : Send" 
+        class="w-12 h-12 text-gray-400 mx-auto mb-4" 
+      />
+      <p class="text-gray-600">
+        {{ type === 'inbox' ? 'No tienes mensajes recibidos' : 'No has enviado ningún mensaje' }}
+      </p>
     </div>
 
     <div v-else class="space-y-3">
@@ -25,7 +30,10 @@
           >
             <div class="flex items-center gap-2">
               <h3 class="text-sm font-medium text-gray-900 truncate">
-                {{ message.sender?.full_name || 'Usuario' }}
+                {{ type === 'inbox' 
+                  ? message.sender?.full_name || 'Usuario' 
+                  : message.recipient?.full_name || 'Destinatario'
+                }}
               </h3>
               <span class="text-xs text-gray-500">
                 {{ formatDate(message.created_at) }}
@@ -38,27 +46,38 @@
               {{ message.content }}
             </p>
             
-            <div v-if="message.product || message.property || message.service" class="mt-2">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {{ getItemType(message) }}
-              </span>
-              <span class="ml-2 text-sm text-gray-600">
-                {{ getItemTitle(message) }}
-              </span>
+            <div class="flex justify-between items-center mt-2">
+              <div v-if="message.product || message.property || message.service" class="flex-1">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {{ getItemType(message) }}
+                </span>
+                <span class="ml-2 text-sm text-gray-600">
+                  {{ getItemTitle(message) }}
+                </span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <button
+                  v-if="type === 'inbox'"
+                  @click.stop="replyToMessage(message)"
+                  class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-primary-600 transition-opacity"
+                  title="Responder"
+                >
+                  <Reply class="w-4 h-4" />
+                </button>
+                
+                <button
+                  @click.stop="confirmDelete(message.id)"
+                  :disabled="isDeleting[message.id]"
+                  class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                  :title="isDeleting[message.id] ? 'Eliminando...' : 'Eliminar mensaje'"
+                >
+                  <Trash2 v-if="!isDeleting[message.id]" class="w-4 h-4" />
+                  <span v-else class="loading loading-spinner loading-xs"></span>
+                </button>
+              </div>
             </div>
-          </div>
-          
-          <div class="flex items-start gap-2">
-            <button
-              @click.stop="confirmDelete(message.id)"
-              :disabled="isDeleting[message.id]"
-              class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-              :title="isDeleting[message.id] ? 'Eliminando...' : 'Eliminar mensaje'"
-            >
-              <Trash2 v-if="!isDeleting[message.id]" class="w-4 h-4" />
-              <span v-else class="loading loading-spinner loading-xs"></span>
-            </button>
-            <div v-if="!message.read" class="ml-1">
+            <div v-if="type === 'inbox' && !message.read" class="ml-1">
               <span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-primary-600"></span>
             </div>
           </div>
@@ -69,16 +88,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, defineEmits } from 'vue'
 import { useMessages } from '../composables/useMessages'
 import { useToast } from 'vue-toastification'
-import { Inbox, Trash2 } from 'lucide-vue-next'
+import { Trash2, Inbox, Send, Reply } from 'lucide-vue-next'
 
-// Props are defined but not used in this version
-// Keeping the props for future use
+const emit = defineEmits(['message-opened', 'reply-to-message'])
+
+const props = defineProps({
+  type: {
+    type: String,
+    default: 'inbox',
+    validator: (value: string) => ['inbox', 'sent'].includes(value)
+  }
+})
 
 const toast = useToast()
-const { messages, loading, loadMessages, markAsRead, deleteMessage } = useMessages()
+const { 
+  messages, 
+  loading, 
+  loadMessages, 
+  markAsRead, 
+  deleteMessage, 
+  setActiveMessageType 
+} = useMessages()
+
+// Actualizar el tipo de mensaje activo cuando cambie la prop
+watch(() => props.type, (newType) => {
+  if (newType === 'inbox' || newType === 'sent') {
+    setActiveMessageType(newType)
+  }
+}, { immediate: true })
 
 const getItemType = (message: any) => {
   if (message.product_id) return 'Producto'
@@ -105,19 +145,25 @@ const formatDate = (dateString: string) => {
   }).format(date)
 }
 
-const openMessage = async (message: any) => {
-  try {
-    if (!message.read && message.recipient_id) {
-      await markAsRead(message.id)
-    }
-    
-    // Aquí podrías navegar a una vista detallada del mensaje
-    // o mostrar un modal con el contenido completo
-    console.log('Abrir mensaje:', message)
-    
-  } catch (error: any) {
-    toast.error(error.message || 'Error al abrir el mensaje')
+const openMessage = (message: any) => {
+  // Marcar como leído si es un mensaje entrante
+  if (props.type === 'inbox' && !message.read) {
+    markAsRead(message.id)
   }
+  
+  // Emitir el evento para abrir el mensaje en el modal
+  emit('message-opened', message)
+}
+
+// Función para manejar la acción de responder a un mensaje
+const replyToMessage = (message: any) => {
+  // Emitir el evento con los datos necesarios para la respuesta
+  emit('reply-to-message', {
+    recipientId: message.sender_id,
+    recipientName: message.sender?.full_name || 'Usuario',
+    isReply: true,
+    originalMessage: message
+  })
 }
 
 const isDeleting = ref<{[key: string]: boolean}>({});
@@ -130,14 +176,26 @@ const confirmDelete = async (messageId: string) => {
   isDeleting.value[messageId] = true;
   
   try {
-    await deleteMessage(messageId);
-    toast.success('Mensaje eliminado correctamente');
+    const success = await deleteMessage(messageId);
     
-    // Actualizar la lista de mensajes
-    await loadMessages();
+    if (success) {
+      toast.success('Mensaje eliminado correctamente');
+      
+      // Actualizar la lista de mensajes
+      await loadMessages();
+    }
   } catch (error: any) {
     console.error('Error al eliminar mensaje:', error);
-    toast.error(error.message || 'Ocurrió un error al eliminar el mensaje');
+    
+    // Mostrar mensaje de error específico si está disponible
+    const errorMessage = error.message || 'Ocurrió un error al eliminar el mensaje';
+    
+    // Si es un error de CORS, mostrar un mensaje más amigable
+    if (error.message?.includes('Failed to fetch')) {
+      toast.error('Error de conexión. Por favor, verifica tu conexión a internet.');
+    } else {
+      toast.error(errorMessage);
+    }
   } finally {
     isDeleting.value[messageId] = false;
   }

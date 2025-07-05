@@ -4,7 +4,22 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = 'https://xnzkzdbgmrdinsojqedw.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhuemt6ZGJnbXJkaW5zb2pxZWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzNzE3MTksImV4cCI6MjA2Njk0NzcxOX0.ImzeMJv49i5sE1osP-TrHvTi8tf2Z37r7ltTX97TuzA'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Opciones de configuración para Supabase
+const supabaseOptions = {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
+    }
+  }
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, supabaseOptions)
 
 export type Database = {
   public: {

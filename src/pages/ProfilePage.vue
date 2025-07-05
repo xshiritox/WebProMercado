@@ -1,5 +1,16 @@
 <template>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Modal de mensaje -->
+    <MessageModal
+      v-if="showMessageModal"
+      :isOpen="showMessageModal"
+      :recipient-id="replyData.recipientId"
+      :recipient-name="replyData.recipientName"
+      :is-reply="replyData.isReply"
+      :original-message="replyData.originalMessage"
+      @close="showMessageModal = false"
+      @sent="handleMessageSent"
+    />
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <!-- Profile Header -->
       <div class="bg-gradient-to-r from-primary-600 to-secondary-500 px-6 py-8">
@@ -208,12 +219,13 @@
               :key="tab.id"
               @click="activeMessageTab = tab.id"
               :class="[
-                'px-4 py-2 text-sm font-medium border-b-2',
+                'flex items-center px-4 py-2 text-sm font-medium border-b-2',
                 activeMessageTab === tab.id 
                   ? 'border-primary-500 text-primary-600' 
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               ]"
             >
+              <component :is="iconComponents[tab.icon]" class="w-4 h-4 mr-1.5" />
               {{ tab.name }}
               <span 
                 v-if="tab.id === 'inbox' && unreadCount > 0"
@@ -224,7 +236,12 @@
             </button>
           </div>
           
-          <MessagesList :type="activeMessageTab" />
+          <MessagesList 
+            :type="activeMessageTab" 
+            @message-opened="openMessage"
+            @reply-to-message="handleReplyToMessage"
+            @toggle-message-type="messageType = $event"
+          />
         </div>
         
         <!-- Products Tab -->
@@ -432,33 +449,67 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, type Component } from 'vue'
+import { ref, reactive, computed, onMounted, watch, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  User, Package, ShoppingCart, Star, Plus, LogOut, Loader2, 
-  ImageOff, Home, Wrench, Inbox, Heart, Settings
+  User, Package, ShoppingCart, Star, Plus, LogOut, 
+  Loader2, ImageOff, Home, Wrench, Inbox, Send, Heart, Settings
 } from 'lucide-vue-next'
+import MessageModal from '@/components/MessageModal.vue'
 import MessagesList from '@/components/MessagesList.vue'
 import { useAuth } from '../composables/useAuth'
 import { useProducts } from '../composables/useProducts'
+import { useMessages } from '../composables/useMessages'
 import { supabase } from '../lib/supabase'
 
 const router = useRouter()
 const { profile, loading, updateProfile, signOut } = useAuth()
 const { deleteProduct: deleteProductFromStore } = useProducts()
+const { unreadCount, loadMessages } = useMessages()
 
 const activeTab = ref('messages')
+const showMessageModal = ref(false)
+const replyData = reactive({
+  recipientId: '',
+  recipientName: '',
+  isReply: false,
+  originalMessage: null as any
+})
 const activeMessageTab = ref('inbox')
 const messageTabs = [
-  { id: 'inbox', name: 'Recibidos' },
-  { id: 'sent', name: 'Enviados' }
+  { id: 'inbox', name: 'Recibidos', icon: 'Inbox' },
+  { id: 'sent', name: 'Enviados', icon: 'Send' }
 ]
 
-const unreadCount = computed(() => {
-  // Aquí deberías obtener el conteo de mensajes no leídos
-  // Por ahora, devolvemos 0 como marcador de posición
-  return 0
+// Cargar mensajes al cambiar entre pestañas
+watch(activeMessageTab, () => {
+  loadMessages()
 })
+
+// Handle message sent event
+const handleMessageSent = () => {
+  showMessageModal.value = false
+  // Recargar mensajes después de enviar
+  loadMessages()
+}
+
+// Handle reply to message
+const handleReplyToMessage = (data: any) => {
+  replyData.recipientId = data.recipientId
+  replyData.recipientName = data.recipientName
+  replyData.isReply = data.isReply
+  replyData.originalMessage = data.originalMessage
+  showMessageModal.value = true
+}
+
+// Open message in a modal
+const openMessage = (message: any) => {
+  // Aquí podrías implementar la lógica para abrir el mensaje en un modal
+  console.log('Abrir mensaje:', message)
+}
+
+// Message type state (for mobile)
+const messageType = ref('inbox')
 const userProducts = ref<any[]>([])
 const userProperties = ref<any[]>([])
 const userServices = ref<any[]>([])
@@ -482,7 +533,8 @@ const iconComponents: IconComponents = {
   Home,
   Wrench,
   Heart,
-  Settings
+  Settings,
+  Send
 }
 
 const tabs = [

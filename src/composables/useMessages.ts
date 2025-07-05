@@ -11,17 +11,41 @@ export const useMessages = () => {
   const { user } = useAuth()
   const toast = useToast()
 
-  const userMessages = computed(() => messages.value)
+  const receivedMessages = computed(() => 
+    messages.value.filter(msg => 
+      msg.recipient_id === user.value?.id && 
+      !msg.deleted_by_recipient
+    )
+  )
+  
+  const sentMessages = computed(() => 
+    messages.value.filter(msg => 
+      msg.sender_id === user.value?.id && 
+      !msg.deleted_by_sender
+    )
+  )
+  
+  const userMessages = computed(() => 
+    activeMessageType.value === 'inbox' ? receivedMessages.value : sentMessages.value
+  )
+  
   const userConversations = computed(() => conversations.value)
   const unreadCount = computed(() => 
     messages.value.filter(msg => !msg.read && msg.recipient_id === user.value?.id).length
   )
+  
+  const activeMessageType = ref<'inbox' | 'sent'>('inbox')
+  
+  const setActiveMessageType = (type: 'inbox' | 'sent') => {
+    activeMessageType.value = type
+  }
 
   const loadMessages = async () => {
     if (!user.value) return
 
     loading.value = true
     try {
+      // Primero, obtenemos todos los mensajes donde el usuario es el remitente o el destinatario
       const { data, error } = await supabase
         .from('messages')
         .select(`
@@ -32,7 +56,7 @@ export const useMessages = () => {
           properties:property_id (title),
           services:service_id (title)
         `)
-        .or(`sender_id.eq.${user.value.id},recipient_id.eq.${user.value.id}`)
+        .or(`and(sender_id.eq.${user.value.id},deleted_by_sender.is.false),and(recipient_id.eq.${user.value.id},deleted_by_recipient.is.false)`)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -52,27 +76,63 @@ export const useMessages = () => {
     product_id?: string
     property_id?: string
     service_id?: string
+    // parent_message_id?: string // Comentado ya que no existe en la base de datos
   }) => {
     if (!user.value) {
       toast.error('Debes iniciar sesión para enviar mensajes')
       return false
     }
 
+    // Validar que el contenido no esté vacío
+    if (!messageData.content || !messageData.content.trim()) {
+      toast.error('El mensaje no puede estar vacío')
+      return false
+    }
+
+    // Validar que se proporcione un destinatario
+    if (!messageData.recipient_id) {
+      toast.error('Debes especificar un destinatario')
+      return false
+    }
+
+    // Crear el objeto de mensaje con solo los campos necesarios
+    const messageToSend: Record<string, any> = {
+      sender_id: user.value.id,
+      recipient_id: messageData.recipient_id,
+      content: messageData.content.trim(),
+      read: false,
+      deleted_by_sender: false,
+      deleted_by_recipient: false
+    }
+
+    // Agregar campos opcionales solo si están presentes
+    if (messageData.subject) messageToSend.subject = messageData.subject
+    if (messageData.product_id) messageToSend.product_id = messageData.product_id
+    if (messageData.property_id) messageToSend.property_id = messageData.property_id
+    if (messageData.service_id) messageToSend.service_id = messageData.service_id
+    // Nota: La columna parent_message_id no existe en la base de datos
+    // Si necesitas esta funcionalidad, debes agregar la columna a la tabla messages
+
     try {
-      const { error } = await supabase
+      console.log('Enviando mensaje:', messageToSend)
+      
+      const { data, error } = await supabase
         .from('messages')
-        .insert({
-          sender_id: user.value.id,
-          ...messageData
-        })
+        .insert(messageToSend)
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error al enviar mensaje:', error)
+        throw new Error(error.message || 'Error al enviar el mensaje')
+      }
 
-      toast.success('Mensaje enviado')
+      console.log('Mensaje enviado correctamente:', data)
+      toast.success('Mensaje enviado correctamente')
       await loadMessages()
       return true
     } catch (error: any) {
-      toast.error(error.message || 'Error al enviar mensaje')
+      console.error('Error en sendMessage:', error)
+      toast.error(error.message || 'Error al enviar el mensaje. Por favor, inténtalo de nuevo.')
       return false
     }
   }
@@ -97,59 +157,72 @@ export const useMessages = () => {
     try {
       console.log('Intentando eliminar mensaje con ID:', messageId);
       
-      // Primero verifiquemos si el mensaje existe y el usuario tiene permiso
+      // Verificar que el usuario esté autenticado
+      if (!user.value) {
+        throw new Error('Debes iniciar sesión para eliminar mensajes');
+      }
+      
+      // Verificar si el mensaje existe y el usuario tiene permiso
+      console.log('Buscando mensaje en la base de datos...');
       const { data: messageData, error: fetchError } = await supabase
         .from('messages')
         .select('id, sender_id, recipient_id')
         .eq('id', messageId)
-        .or(`sender_id.eq.${user.value?.id},recipient_id.eq.${user.value?.id}`)
+        .or(`sender_id.eq.${user.value.id},recipient_id.eq.${user.value.id}`)
         .single();
 
       if (fetchError || !messageData) {
+        console.error('Error al buscar el mensaje:', fetchError);
         throw new Error('No se pudo encontrar el mensaje o no tienes permiso para eliminarlo');
       }
 
-      // Intentar eliminar usando el método de actualización para marcar como eliminado
-      const { error: updateError } = await supabase
-        .from('messages')
-        .update({ 
-          deleted_at: new Date().toISOString(),
-          deleted_by: user.value?.id
-        })
-        .eq('id', messageId);
+      // Verificar si el usuario es el remitente o el destinatario
+      const isSender = messageData.sender_id === user.value.id;
+      const isRecipient = messageData.recipient_id === user.value.id;
 
-      if (updateError) {
-        // Si falla el update, intentar con delete
-        console.log('Falló el update, intentando con delete directo');
-        const { error: deleteError } = await supabase
-          .from('messages')
-          .delete()
-          .eq('id', messageId);
-          
-        if (deleteError) throw deleteError;
+      if (!isSender && !isRecipient) {
+        throw new Error('No tienes permiso para eliminar este mensaje');
       }
 
+      console.log('Eliminando mensaje...');
+      const { error: deleteError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId)
+        .or(`sender_id.eq.${user.value.id},recipient_id.eq.${user.value.id}`);
+
+      if (deleteError) {
+        console.error('Error al eliminar el mensaje:', deleteError);
+        throw new Error('No se pudo eliminar el mensaje: ' + deleteError.message);
+      }
+
+      console.log('Mensaje eliminado correctamente');
+      
       // Actualizar la lista localmente
       messages.value = messages.value.filter(msg => msg.id !== messageId);
       
-      // Recargar mensajes desde el servidor
+      // Recargar los mensajes para asegurar que todo esté sincronizado
       await loadMessages();
       
       return true;
     } catch (error: any) {
       console.error('Error en deleteMessage:', error);
-      throw error;
+      throw error; // Re-lanzar el error para que pueda ser manejado por el componente
     }
   }
 
   return {
     messages: userMessages,
+    receivedMessages,
+    sentMessages,
     conversations: userConversations,
     unreadCount,
-    loading: computed(() => loading.value),
+    loading,
     loadMessages,
     sendMessage,
     markAsRead,
-    deleteMessage
+    deleteMessage,
+    activeMessageType,
+    setActiveMessageType
   }
 }
