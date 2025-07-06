@@ -2,9 +2,7 @@
   <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <div class="flex justify-center">
-        <div class="w-12 h-12 bg-gradient-to-r from-primary-600 to-secondary-500 rounded-lg flex items-center justify-center">
-          <ShoppingBag class="w-6 h-6 text-white" />
-        </div>
+        <img src="/Logo.webp" alt="Kroma Logo" class="h-16 w-auto transition-transform duration-300 hover:scale-105 rounded-lg">
       </div>
       <h2 class="mt-6 text-center text-3xl font-bold text-gray-900">
         Crear Cuenta
@@ -137,7 +135,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ShoppingBag, User, Mail, Eye, EyeOff, Loader2 } from 'lucide-vue-next'
+import { User, Mail, Eye, EyeOff, Loader2 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { useToast } from 'vue-toastification'
 
