@@ -454,7 +454,6 @@ const {
   filterByCategory,
   setSortBy,
   setPriceRange,
-  getPriceType,
   getServices
 } = useServices()
 
