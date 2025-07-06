@@ -5,9 +5,7 @@
         <!-- Logo and Description -->
         <div class="col-span-1 md:col-span-2">
           <div class="flex items-center space-x-2 mb-4">
-            <div class="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-500 rounded-lg flex items-center justify-center">
-              <ShoppingBag class="w-5 h-5 text-white" />
-            </div>
+            <img src="/Logo.webp" alt="Kroma Logo" class="h-8 w-auto transition-transform duration-300 hover:scale-105 rounded-lg">
             <span class="text-xl font-bold">Kroma</span>
           </div>
           <p class="text-gray-300">
@@ -51,5 +49,5 @@
 </template>
 
 <script setup lang="ts">
-import { ShoppingBag } from 'lucide-vue-next'
+// Removed ShoppingBag import since we're now using the actual logo
 </script>
