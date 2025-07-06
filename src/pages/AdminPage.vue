@@ -621,6 +621,7 @@ const Trash2 = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.
 const ImageOff = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.ImageOff))
 const AlertTriangle = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.AlertTriangle))
 const CheckCircle2 = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.CheckCircle2))
+const Settings = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Settings))
 import { supabase } from '../lib/supabase'
 
 // Tipos de datos

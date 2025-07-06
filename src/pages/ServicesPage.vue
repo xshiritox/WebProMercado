@@ -19,7 +19,7 @@
               placeholder="Buscar servicios..."
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
-            <Search class="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+            <IconSearch class="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
           </div>
         </div>
 
@@ -106,7 +106,7 @@
 
       <div v-else-if="filteredServices.length === 0" class="text-center py-12 bg-white rounded-lg shadow">
         <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Wrench class="w-8 h-8 text-gray-400" />
+          <IconWrench class="w-8 h-8 text-gray-400" />
         </div>
         <h3 class="text-lg font-medium text-gray-900 mb-2">No hay servicios disponibles</h3>
         <p class="text-gray-500 mb-6">Parece que aún no hay servicios publicados en esta categoría.</p>
@@ -115,7 +115,7 @@
           to="/post-service" 
           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
-          <Plus class="w-4 h-4 mr-2" />
+          <IconPlus class="w-4 h-4 mr-2" />
           Publicar un servicio
         </router-link>
       </div>
@@ -130,7 +130,7 @@
         >
           <div class="h-48 bg-gray-100 relative flex items-center justify-center overflow-hidden">
             <div v-if="!service.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-              <Wrench class="w-12 h-12 mb-2" />
+              <IconWrench class="w-12 h-12 mb-2" />
               <span class="text-sm">Sin imagen disponible</span>
             </div>
             <img
@@ -140,7 +140,19 @@
               class="w-full h-full object-contain bg-white p-2"
             >
             <div class="absolute top-2 right-2 bg-white rounded-full p-1 shadow">
-              <Heart class="w-5 h-5 text-gray-400 hover:text-red-500 cursor-pointer" />
+              <button 
+                @click.stop="toggleFavorite(service)"
+                class="focus:outline-none"
+                :title="isFavorite('service', service.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+              >
+                <IconHeart 
+                  class="w-5 h-5" 
+                  :class="{
+                    'text-red-500 fill-current': isFavorite('service', service.id),
+                    'text-gray-400 hover:text-red-500': !isFavorite('service', service.id)
+                  }" 
+                />
+              </button>
             </div>
           </div>
           <div class="p-4">
@@ -152,7 +164,7 @@
             </div>
             <div class="flex items-center justify-between mb-2">
               <div v-if="service.rating" class="flex items-center">
-                <Star class="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                <IconStar class="w-4 h-4 text-yellow-400 fill-current mr-1" />
                 <span class="text-sm text-gray-600">
                   {{ service.rating.toFixed(1) }}
                 </span>
@@ -174,7 +186,7 @@
                 <p class="text-xs text-gray-500">{{ getPriceType(service.price_type) }}</p>
               </div>
               <div class="flex items-center">
-                <Star class="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                <IconStar class="w-4 h-4 text-yellow-400 fill-current mr-1" />
                 <span class="text-sm font-medium text-gray-900">{{ service.rating || 'Nuevo' }}</span>
               </div>
             </div>
@@ -198,7 +210,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="text-center">
           <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search class="w-8 h-8 text-primary-600" />
+            <IconSearch class="w-8 h-8 text-primary-600" />
           </div>
           <h3 class="text-xl font-semibold text-gray-900 mb-2">1. Busca</h3>
           <p class="text-gray-600">
@@ -208,7 +220,7 @@
 
         <div class="text-center">
           <div class="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MessageCircle class="w-8 h-8 text-secondary-600" />
+            <IconMessageCircle class="w-8 h-8 text-secondary-600" />
           </div>
           <h3 class="text-xl font-semibold text-gray-900 mb-2">2. Contacta</h3>
           <p class="text-gray-600">
@@ -218,7 +230,7 @@
 
         <div class="text-center">
           <div class="w-16 h-16 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle class="w-8 h-8 text-accent-600" />
+            <IconCheckCircle class="w-8 h-8 text-accent-600" />
           </div>
           <h3 class="text-xl font-semibold text-gray-900 mb-2">3. Contrata</h3>
           <p class="text-gray-600">
@@ -240,7 +252,7 @@
           to="/register"
           class="bg-white text-primary-600 hover:bg-gray-100 font-medium py-3 px-8 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center"
         >
-          <UserPlus class="w-5 h-5" />
+          <IconUserPlus class="w-5 h-5" />
           Registrarse como Profesional
         </router-link>
         <router-link
@@ -248,7 +260,7 @@
           to="/post-service"
           class="bg-white text-primary-600 hover:bg-gray-100 font-medium py-3 px-8 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center"
         >
-          <Plus class="w-5 h-5" />
+          <IconPlus class="w-5 h-5" />
           Publicar Servicio
         </router-link>
       </div>
@@ -259,17 +271,61 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { 
-  Search, MessageCircle, CheckCircle, UserPlus, Plus,
-  Wrench, Heart, Star
-} from 'lucide-vue-next'
+import { useFavorites } from '../composables/useFavorites'
 import { useAuth } from '../composables/useAuth'
+import { 
+  Search as IconSearch, 
+  Plus as IconPlus,
+  Wrench as IconWrench,
+  Star as IconStar,
+  Heart as IconHeart,
+  UserPlus as IconUserPlus,
+  MessageCircle as IconMessageCircle,
+  CheckCircle as IconCheckCircle
+} from 'lucide-vue-next'
 import { useServices } from '../composables/useServices'
 
-const route = useRoute()
 const router = useRouter()
+const route = useRoute()
 const { isAuthenticated } = useAuth()
-const {
+const { 
+  addToFavorites, 
+  removeFromFavorites, 
+  isFavorite, 
+  loadFavorites, 
+  favorites 
+} = useFavorites()
+
+// Cargar servicios al montar el componente
+onMounted(async () => {
+  if (isAuthenticated.value) {
+    await loadFavorites()
+  }
+  await getServices()
+  
+  // Aplicar filtros de la URL si existen
+  if (route.query.search) {
+    searchInput.value = route.query.search.toString()
+    searchServices(searchInput.value)
+  }
+  
+  if (route.query.category) {
+    selectedCategoryLocal.value = route.query.category.toString()
+    filterByCategory(selectedCategoryLocal.value)
+  }
+  
+  if (route.query.sort) {
+    sortByLocal.value = route.query.sort.toString()
+    setSortBy(sortByLocal.value)
+  }
+  
+  if (route.query.price) {
+    priceRange.value = route.query.price.toString()
+    setPriceRange(priceRange.value)
+  }
+})
+
+const { 
   filteredServices,
   loading: loadingServices,
   serviceCategories,
@@ -279,7 +335,6 @@ const {
   filterByCategory,
   setSortBy,
   setPriceRange,
-  // viewService is now handled locally
   getPriceType,
   getServices
 } = useServices()
@@ -306,33 +361,41 @@ const handlePriceFilter = () => {
 }
 
 const viewService = (service: any) => {
-  router.push({ 
-    name: 'service-detail', 
-    params: { id: service.id } 
-  })
+  router.push(`/service/${service.id}`)
+}
+
+const toggleFavorite = async (service: any) => {
+  if (!isAuthenticated.value) {
+    // Redirigir al login si no está autenticado
+    router.push('/login')
+    return
+  }
+
+  try {
+    if (isFavorite('service', service.id)) {
+      // Encontrar el ID del favorito para eliminarlo
+      const fav = favorites.value.find((f: any) => f.service_id === service.id)
+      if (fav) {
+        await removeFromFavorites(fav.id)
+      }
+    } else {
+      await addToFavorites('service', service.id)
+    }
+  } catch (error) {
+    console.error('Error al actualizar favoritos:', error)
+  }
 }
 
 const loadServices = async () => {
   try {
     await getServices()
-    
-    // Aplicar búsqueda si hay un término en la URL
-    if (route.query.search) {
-      searchInput.value = route.query.search as string
-      searchServices(searchInput.value)
-    }
-    
-    // Aplicar filtro de categoría si hay uno en la URL
-    if (route.query.category) {
-      selectedCategoryLocal.value = route.query.category as string
-      filterByCategory(selectedCategoryLocal.value)
-    }
   } catch (error) {
     console.error('Error cargando servicios:', error)
   }
 }
 
 const formatPrice = (price: number) => {
+  if (!price) return '$0'
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',

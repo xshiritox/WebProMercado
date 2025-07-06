@@ -6,6 +6,10 @@ import './style.css'
 import App from './App.vue'
 import { routes } from './router'
 import { useAuth } from './composables/useAuth'
+import { 
+  User, Package, Home, Wrench, Heart, Settings, Send, 
+  Loader2, ShoppingCart, Star, LogOut, Plus, ImageOff, MessageSquare 
+} from 'lucide-vue-next'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -37,6 +41,22 @@ router.beforeEach(async (to, _from, next) => {
 })
 
 const app = createApp(App)
+
+// Registrar componentes globalmente
+app.component('UserIcon', User)
+app.component('PackageIcon', Package)
+app.component('HomeIcon', Home)
+app.component('WrenchIcon', Wrench)
+app.component('HeartIcon', Heart)
+app.component('SettingsIcon', Settings)
+app.component('SendIcon', Send)
+app.component('Loader2', Loader2)
+app.component('ShoppingCart', ShoppingCart)
+app.component('Star', Star)
+app.component('LogOut', LogOut)
+app.component('Plus', Plus)
+app.component('ImageOff', ImageOff)
+app.component('MessageIcon', MessageSquare)
 
 app.use(router)
 app.use(Toast, {

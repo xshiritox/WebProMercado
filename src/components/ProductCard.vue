@@ -3,19 +3,19 @@
     <!-- Product Image -->
     <div class="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
       <div v-if="!product.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-        <ImageOff class="w-12 h-12 mb-2" />
+        <IconImageOff class="w-12 h-12 mb-2" />
         <span class="text-sm">Sin imagen disponible</span>
       </div>
-      <img
-        v-else
-        :src="product.images[0]"
-        :alt="product.title"
+      <img 
+        v-else 
+        :src="product.images[0]" 
+        :alt="product.title" 
         class="w-full h-full object-contain bg-white p-2"
-      />
+      >
       <!-- Favorite Button -->
       <div class="absolute top-2 right-2 bg-white rounded-full p-1 shadow cursor-pointer hover:bg-gray-100" @click.stop="toggleFavorite">
-        <Heart 
-          :class="[isFavorite ? 'text-red-500 fill-current' : 'text-gray-400']" 
+        <IconHeart 
+          :class="[isFavoriteProduct ? 'text-red-500 fill-current' : 'text-gray-400']" 
           class="w-5 h-5 transition-colors duration-200" 
         />
       </div>
@@ -53,33 +53,33 @@
       </p>
 
       <div class="flex items-center justify-between text-sm text-gray-500 mb-3">
-        <div class="flex items-center gap-1">
-          <MapPin class="w-4 h-4" />
-          <span>{{ product.location }}</span>
+        <div class="flex items-center text-sm text-gray-500">
+          <IconMapPin class="w-4 h-4 mr-1" />
+          <span>{{ product.location || 'Ubicación no especificada' }}</span>
         </div>
-        <div class="flex items-center gap-1">
-          <Clock class="w-4 h-4" />
+        <div class="flex items-center text-sm text-gray-500">
+          <IconClock class="w-4 h-4 mr-1" />
           <span>{{ formatDate(product.created_at) }}</span>
         </div>
       </div>
 
       <!-- Seller Info -->
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
-            <User class="w-3 h-3 text-white" />
-          </div>
-          <span class="text-sm text-gray-600">{{ product.profiles?.full_name }}</span>
+        <div class="flex items-center">
+          <IconStar class="w-4 h-4 text-yellow-400 fill-current mr-1" />
+          <span class="text-gray-600 text-sm">4.8</span>
+          <span class="text-gray-400 text-sm ml-1">(24)</span>
         </div>
+        <span class="text-sm text-gray-600">{{ product.profiles?.full_name }}</span>
+      </div>
         
-        <div v-if="product.profiles?.badge" class="flex items-center">
-          <span
-            :class="badgeClass"
-            class="px-2 py-1 rounded-full text-xs font-medium text-white"
-          >
-            {{ badgeText }}
-          </span>
-        </div>
+      <div v-if="product.profiles?.badge" class="flex items-center">
+        <span
+          :class="badgeClass"
+          class="px-2 py-1 rounded-full text-xs font-medium text-white"
+        >
+          {{ badgeText }}
+        </span>
       </div>
 
       <!-- Action Button -->
@@ -96,20 +96,61 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { Star, MapPin, Clock, User, ImageOff, Heart } from 'lucide-vue-next'
+import { ref, onMounted, computed, watch } from 'vue'
+import { 
+  Star as IconStar, 
+  MapPin as IconMapPin, 
+  Clock as IconClock, 
+  ImageOff as IconImageOff, 
+  Heart as IconHeart 
+} from 'lucide-vue-next'
+import { useFavorites } from '@/composables/useFavorites'
 
 interface Props {
   product: any
 }
 
 const props = defineProps<Props>()
-const isFavorite = ref(false)
+const { 
+  addToFavorites, 
+  removeFromFavorites, 
+  isFavorite, 
+  loadFavorites, 
+  favorites 
+} = useFavorites()
+const isFavoriteProduct = ref(false)
 
-const toggleFavorite = (event: Event) => {
+// Watch for changes in favorites and update the local state
+watch(favorites, () => {
+  isFavoriteProduct.value = isFavorite('product', props.product.id)
+}, { immediate: true })
+
+// Load favorites on component mount
+onMounted(async () => {
+  try {
+    await loadFavorites()
+    isFavoriteProduct.value = isFavorite('product', props.product.id)
+  } catch (error) {
+    console.error('Error loading favorites:', error)
+  }
+})
+
+const toggleFavorite = async (event: Event) => {
   event.stopPropagation()
-  isFavorite.value = !isFavorite.value
-  // TODO: Add API call to save favorite state
+  
+  try {
+    if (isFavoriteProduct.value) {
+      // Find the favorite to remove it
+      const favorite = favorites.value.find(fav => fav.product_id === props.product.id)
+      if (favorite) {
+        await removeFromFavorites(favorite.id)
+      }
+    } else {
+      await addToFavorites('product', props.product.id)
+    }
+  } catch (error) {
+    console.error('Error toggling favorite:', error)
+  }
 }
 
 const conditionClass = computed(() => {

@@ -16,7 +16,7 @@
       <div class="bg-gradient-to-r from-primary-600 to-secondary-500 px-6 py-8">
         <div class="flex items-center space-x-4">
           <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center">
-            <User class="w-10 h-10 text-primary-600" />
+            <IconUser class="w-10 h-10 text-primary-600" />
           </div>
           <div class="text-white">
             <h1 class="text-2xl font-bold">{{ profile?.full_name }}</h1>
@@ -109,7 +109,7 @@
                     :disabled="loading"
                     class="btn-primary"
                   >
-                    <Loader2 v-if="loading" class="animate-spin w-4 h-4" />
+                    <IconLoader2 v-if="loading" class="animate-spin w-4 h-4" />
                     {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
                   </button>
                 </div>
@@ -125,7 +125,7 @@
               <div class="space-y-4">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <Package class="w-4 h-4 text-primary-600" />
+                    <IconPackage class="w-4 h-4 text-primary-600" />
                     <span class="text-sm text-gray-600">Productos publicados</span>
                   </div>
                   <span class="font-semibold text-gray-900">{{ userStats.products }}</span>
@@ -133,7 +133,7 @@
 
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <Home class="w-4 h-4 text-blue-600" />
+                    <IconHome class="w-4 h-4 text-blue-600" />
                     <span class="text-sm text-gray-600">Propiedades publicadas</span>
                   </div>
                   <span class="font-semibold text-gray-900">{{ userStats.properties }}</span>
@@ -141,7 +141,7 @@
 
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <Wrench class="w-4 h-4 text-green-600" />
+                    <IconWrench class="w-4 h-4 text-green-600" />
                     <span class="text-sm text-gray-600">Servicios publicados</span>
                   </div>
                   <span class="font-semibold text-gray-900">{{ userStats.services }}</span>
@@ -149,7 +149,7 @@
 
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <ShoppingCart class="w-4 h-4 text-green-600" />
+                    <IconShoppingCart class="w-4 h-4 text-green-600" />
                     <span class="text-sm text-gray-600">Productos vendidos</span>
                   </div>
                   <span class="font-semibold text-gray-900">{{ userStats.sold }}</span>
@@ -157,12 +157,12 @@
 
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <Star class="w-4 h-4 text-yellow-500" />
+                    <IconStar class="w-4 h-4 text-yellow-500" />
                     <span class="text-sm text-gray-600">Calificación</span>
                   </div>
                   <div class="flex items-center gap-1">
                     <span class="font-semibold text-gray-900">{{ userStats.rating }}</span>
-                    <Star class="w-3 h-3 text-yellow-500 fill-current" />
+                    <IconStar class="w-3 h-3 text-yellow-500 fill-current" />
                   </div>
                 </div>
               </div>
@@ -174,7 +174,7 @@
                   @click="handleSignOut"
                   class="w-full btn-outline justify-center"
                 >
-                  <LogOut class="w-4 h-4" />
+                  <IconLogOut class="w-4 h-4" />
                   Cerrar Sesión
                 </button>
               </div>
@@ -252,20 +252,20 @@
               to="/post-product"
               class="btn-primary"
             >
-              <Plus class="w-4 h-4" />
+              <IconPlus class="w-4 h-4" />
               Nuevo Producto
             </router-link>
           </div>
 
           <div v-if="userProducts.length === 0" class="text-center py-8">
-            <Package class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <IconPackage class="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 class="text-lg font-semibold text-gray-900 mb-2">No tienes productos publicados</h3>
             <p class="text-gray-600 mb-4">Comienza a vender publicando tu primer producto</p>
             <router-link
               to="/post-product"
               class="btn-primary"
             >
-              <Plus class="w-4 h-4" />
+              <IconPlus class="w-4 h-4" />
               Publicar Producto
             </router-link>
           </div>
@@ -277,7 +277,7 @@
               class="border border-gray-200 rounded-lg p-4"
             >
               <div v-if="!product.images?.[0]" class="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-                <ImageOff class="w-8 h-8 mb-2" />
+                <IconImageOff class="w-8 h-8 mb-2" />
                 <span class="text-sm">Sin imagen</span>
               </div>
               <img
@@ -317,20 +317,20 @@
               to="/post-property"
               class="btn-primary"
             >
-              <Plus class="w-4 h-4" />
+              <IconPlus class="w-4 h-4" />
               Nueva Propiedad
             </router-link>
           </div>
 
           <div v-if="userProperties.length === 0" class="text-center py-8">
-            <Home class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <IconHome class="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 class="text-lg font-semibold text-gray-900 mb-2">No tienes propiedades publicadas</h3>
             <p class="text-gray-600 mb-4">Comienza a ofrecer propiedades publicando tu primera propiedad</p>
             <router-link
               to="/post-property"
               class="btn-primary"
             >
-              <Plus class="w-4 h-4" />
+              <IconPlus class="w-4 h-4" />
               Publicar Propiedad
             </router-link>
           </div>
@@ -342,7 +342,7 @@
               class="border border-gray-200 rounded-lg p-4"
             >
               <div v-if="!property.images?.[0]" class="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-                <ImageOff class="w-8 h-8 mb-2" />
+                <IconImageOff class="w-8 h-8 mb-2" />
                 <span class="text-sm">Sin imagen</span>
               </div>
               <img
@@ -385,20 +385,20 @@
               to="/post-service"
               class="btn-primary"
             >
-              <Plus class="w-4 h-4" />
+              <IconPlus class="w-4 h-4" />
               Nuevo Servicio
             </router-link>
           </div>
 
           <div v-if="userServices.length === 0" class="text-center py-8">
-            <Wrench class="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <IconWrench class="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 class="text-lg font-semibold text-gray-900 mb-2">No tienes servicios publicados</h3>
             <p class="text-gray-600 mb-4">Comienza a ofrecer servicios publicando tu primer servicio</p>
             <router-link
               to="/post-service"
               class="btn-primary"
             >
-              <Plus class="w-4 h-4" />
+              <IconPlus class="w-4 h-4" />
               Publicar Servicio
             </router-link>
           </div>
@@ -410,7 +410,7 @@
               class="border border-gray-200 rounded-lg p-4"
             >
               <div v-if="!service.images?.[0]" class="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-                <ImageOff class="w-8 h-8 mb-2" />
+                <IconImageOff class="w-8 h-8 mb-2" />
                 <span class="text-sm">Sin imagen</span>
               </div>
               <img
@@ -443,6 +443,107 @@
             </div>
           </div>
         </div>
+
+        <!-- Favorites Tab -->
+        <div v-if="activeTab === 'favorites'">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Mis Favoritos</h2>
+          </div>
+
+          <div v-if="loadingFavorites" class="flex justify-center py-8">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+          </div>
+
+          <div v-else>
+            <div v-if="favorites.length === 0" class="text-center py-12">
+              <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
+                <IconHeart class="h-6 w-6 text-gray-400" />
+              </div>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No hay favoritos</h3>
+              <p class="mt-1 text-sm text-gray-500">Guarda tus productos, propiedades y servicios favoritos aquí.</p>
+            </div>
+
+            <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <!-- Product Favorites -->
+              <div 
+                v-for="favorite in favorites.filter(f => f.product_id)" 
+                :key="`product-${favorite.id}`" 
+                class="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                @click="goToDetail('product', favorite.product_id)"
+              >
+                <div class="p-4">
+                  <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-medium text-gray-900">{{ favorite.products?.title }}</h3>
+                    <span class="text-sm font-medium text-primary-600">${{ formatPrice(favorite.products?.price) }}</span>
+                  </div>
+                  <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ favorite.products?.description }}</p>
+                  <div class="mt-4 flex justify-between items-center">
+                    <span class="text-xs text-gray-500">Producto</span>
+                    <button
+                      @click.stop="removeFromFavorites(favorite.id)"
+                      class="text-gray-400 hover:text-red-500"
+                      title="Quitar de favoritos"
+                    >
+                      <IconHeart class="h-5 w-5 fill-current text-red-500" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Property Favorites -->
+              <div 
+                v-for="favorite in favorites.filter(f => f.property_id)" 
+                :key="`property-${favorite.id}`" 
+                class="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                @click="goToDetail('property', favorite.property_id)"
+              >
+                <div class="p-4">
+                  <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-medium text-gray-900">{{ favorite.properties?.title }}</h3>
+                    <span class="text-sm font-medium text-primary-600">${{ formatPrice(favorite.properties?.price) }}</span>
+                  </div>
+                  <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ favorite.properties?.description }}</p>
+                  <div class="mt-4 flex justify-between items-center">
+                    <span class="text-xs text-gray-500">Propiedad</span>
+                    <button
+                      @click.stop="removeFromFavorites(favorite.id)"
+                      class="text-gray-400 hover:text-red-500"
+                      title="Quitar de favoritos"
+                    >
+                      <IconHeart class="h-5 w-5 fill-current text-red-500" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Service Favorites -->
+              <div 
+                v-for="favorite in favorites.filter(f => f.service_id)" 
+                :key="`service-${favorite.id}`" 
+                class="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                @click="goToDetail('service', favorite.service_id)"
+              >
+                <div class="p-4">
+                  <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-medium text-gray-900">{{ favorite.services?.title }}</h3>
+                    <span class="text-sm font-medium text-primary-600">${{ formatPrice(favorite.services?.price) }}</span>
+                  </div>
+                  <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ favorite.services?.description }}</p>
+                  <div class="mt-4 flex justify-between items-center">
+                    <span class="text-xs text-gray-500">Servicio</span>
+                    <button
+                      @click.stop="removeFromFavorites(favorite.id)"
+                      class="text-gray-400 hover:text-red-500"
+                      title="Quitar de favoritos"
+                    >
+                      <IconHeart class="h-5 w-5 fill-current text-red-500" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -451,21 +552,38 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, type Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { 
-  User, Package, ShoppingCart, Star, Plus, LogOut, 
-  Loader2, ImageOff, Home, Wrench, Inbox, Send, Heart, Settings
-} from 'lucide-vue-next'
-import MessageModal from '@/components/MessageModal.vue'
-import MessagesList from '@/components/MessagesList.vue'
 import { useAuth } from '../composables/useAuth'
 import { useProducts } from '../composables/useProducts'
 import { useMessages } from '../composables/useMessages'
+import { useFavorites } from '../composables/useFavorites'
 import { supabase } from '../lib/supabase'
+import { useToast } from 'vue-toastification'
+// Importar iconos directamente
+import { 
+  User as IconUser,
+  Package as IconPackage,
+  Home as IconHome,
+  Wrench as IconWrench,
+  Heart as IconHeart,
+  Settings as IconSettings,
+  Send as IconSend,
+  Loader2 as IconLoader2,
+  ShoppingCart as IconShoppingCart,
+  Star as IconStar,
+  LogOut as IconLogOut,
+  Plus as IconPlus,
+  ImageOff as IconImageOff,
+  Inbox as IconInbox
+} from 'lucide-vue-next'
+import MessageModal from '../components/MessageModal.vue'
+import MessagesList from '../components/MessagesList.vue'
 
 const router = useRouter()
 const { profile, loading, updateProfile, signOut } = useAuth()
 const { deleteProduct: deleteProductFromStore } = useProducts()
 const { unreadCount, loadMessages } = useMessages()
+const { favorites, loading: loadingFavorites, loadFavorites, removeFromFavorites } = useFavorites()
+const toast = useToast()
 
 const activeTab = ref('messages')
 const showMessageModal = ref(false)
@@ -477,7 +595,7 @@ const replyData = reactive({
 })
 const activeMessageTab = ref('inbox')
 const messageTabs = [
-  { id: 'inbox', name: 'Recibidos', icon: 'Inbox' },
+  { id: 'inbox', name: 'Bandeja de entrada', icon: 'Inbox' },
   { id: 'sent', name: 'Enviados', icon: 'Send' }
 ]
 
@@ -523,18 +641,18 @@ const userStats = ref({
 
 // Define the type for our icon components
 interface IconComponents {
-  [key: string]: Component;
+  [key: string]: string | Component;
 }
 
 // Map of icon names to their components
 const iconComponents: IconComponents = {
-  Inbox,
-  Package,
-  Home,
-  Wrench,
-  Heart,
-  Settings,
-  Send
+  Inbox: IconInbox,
+  Package: IconPackage,
+  Home: IconHome,
+  Wrench: IconWrench,
+  Heart: IconHeart,
+  Settings: IconSettings,
+  Send: IconSend
 }
 
 const tabs = [
@@ -545,6 +663,8 @@ const tabs = [
   { id: 'favorites', name: 'Favoritos', icon: 'Heart' },
   { id: 'settings', name: 'Configuración', icon: 'Settings' }
 ]
+
+
 
 const form = reactive({
   full_name: '',
@@ -643,7 +763,16 @@ const handleSignOut = async () => {
   router.push('/')
 }
 
-
+// Navegar a la página de detalle correspondiente
+const goToDetail = (type: string, id: string) => {
+  if (type === 'product') {
+    router.push(`/product/${id}`)
+  } else if (type === 'property') {
+    router.push(`/property/${id}`)
+  } else if (type === 'service') {
+    router.push(`/service/${id}`)
+  }
+}
 
 const editProduct = (productId: string) => {
   router.push(`/product/${productId}/edit`)
@@ -858,6 +987,7 @@ onMounted(async () => {
     form.email = profile.value.email || ''
     form.phone = profile.value.phone || ''
     form.location = profile.value.location || ''
+    form.bio = profile.value.bio || ''
     
     await Promise.all([
       loadUserProducts(),
@@ -866,4 +996,21 @@ onMounted(async () => {
     ])
   }
 })
+
+// Watch for tab changes to load favorites when the tab is active
+watch(activeTab, async (newTab) => {
+  if (newTab === 'favorites' && favorites.value.length === 0) {
+    await loadFavoritesList()
+  }
+})
+
+// Load favorites list
+const loadFavoritesList = async () => {
+  try {
+    await loadFavorites()
+  } catch (error: any) {
+    console.error('Error loading favorites:', error)
+    toast.error(error.message || 'Error al cargar los favoritos')
+  }
+}
 </script>

@@ -101,7 +101,7 @@
         to="/post-property"
         class="btn-primary"
       >
-        <Plus class="w-4 h-4" />
+        <IconPlus class="w-4 h-4" />
         Publicar Propiedad
       </router-link>
     </div>
@@ -119,7 +119,7 @@
     </div>
 
     <div v-else-if="filteredProperties.length === 0" class="text-center py-12">
-      <Home class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+      <IconHome class="w-16 h-16 text-gray-400 mx-auto mb-4" />
       <h3 class="text-xl font-semibold text-gray-900 mb-2">No se encontraron propiedades</h3>
       <p class="text-gray-600 mb-6">Intenta ajustar tus filtros de búsqueda</p>
       <router-link
@@ -127,7 +127,7 @@
         to="/post-property"
         class="btn-primary"
       >
-        <Plus class="w-4 h-4" />
+        <IconPlus class="w-4 h-4" />
         Publicar la Primera Propiedad
       </router-link>
     </div>
@@ -140,7 +140,7 @@
         <!-- Property Image -->
         <div class="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
           <div v-if="!property.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-            <ImageOff class="w-12 h-12 mb-2" />
+            <IconImageOff class="w-full h-48 object-cover bg-gray-100" />
             <span class="text-sm">Sin imagen disponible</span>
           </div>
           <img
@@ -160,16 +160,16 @@
           <div class="absolute top-2 right-2 flex flex-col items-end gap-2">
             <div 
               class="bg-white rounded-full p-1 shadow cursor-pointer hover:bg-gray-100" 
-              @click.stop="toggleFavorite(property.id)"
+              @click.stop="toggleFavorite(property, $event)"
             >
-              <Heart 
-                :class="[favoriteProperties[property.id] ? 'text-red-500 fill-current' : 'text-gray-400']" 
+              <IconHeart 
+                :class="[isFavorite('property', property.id) ? 'text-red-500 fill-current' : 'text-gray-400']" 
                 class="w-5 h-5 transition-colors duration-200" 
               />
             </div>
             <div v-if="property.featured">
               <span class="bg-secondary-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                <Star class="w-3 h-3" />
+                <IconStar class="w-4 h-4 text-yellow-400 fill-current" />
                 Destacado
               </span>
             </div>
@@ -194,11 +194,11 @@
           <div class="flex items-center justify-between text-sm text-gray-600 mb-3">
             <div class="flex items-center gap-4">
               <div class="flex items-center gap-1">
-                <Bed class="w-4 h-4" />
+                <IconBed class="w-4 h-4 text-gray-400" />
                 <span>{{ property.bedrooms || 'N/A' }}</span>
               </div>
               <div class="flex items-center gap-1">
-                <Bath class="w-4 h-4" />
+                <IconBath class="w-4 h-4 text-gray-400" />
                 <span>{{ property.bathrooms || 'N/A' }}</span>
               </div>
 
@@ -207,11 +207,11 @@
 
           <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
             <div class="flex items-center gap-1">
-              <MapPin class="w-4 h-4" />
+              <IconMapPin class="w-4 h-4 text-gray-400" />
               <span>{{ property.location }}</span>
             </div>
             <div class="flex items-center gap-1">
-              <Clock class="w-4 h-4" />
+              <IconClock class="w-4 h-4 text-gray-400" />
               <span>{{ formatDate(property.created_at) }}</span>
             </div>
           </div>
@@ -232,37 +232,77 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useProperties } from '../composables/useProperties'
-import { Plus, MapPin, Bed, Bath, Star, Home, ImageOff, Clock, Heart } from 'lucide-vue-next'
-import { useAuth } from '../composables/useAuth'
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useProperties } from '../composables/useProperties'
+import { useFavorites } from '../composables/useFavorites'
+import { useAuth } from '../composables/useAuth'
+import { 
+  Plus as IconPlus, 
+  MapPin as IconMapPin, 
+  Bed as IconBed, 
+  Bath as IconBath, 
+  Star as IconStar, 
+  Home as IconHome, 
+  ImageOff as IconImageOff, 
+  Clock as IconClock, 
+  Heart as IconHeart 
+} from 'lucide-vue-next'
 
+const router = useRouter()
 const { isAuthenticated } = useAuth()
+const { 
+  addToFavorites, 
+  removeFromFavorites, 
+  isFavorite, 
+  loadFavorites, 
+  favorites 
+} = useFavorites()
 
-const {
-  filteredProperties,
-  loading,
-  filters,
-  viewProperty,
-  propertyTypes,
-  transactionTypes,
+const { 
+  loading, 
+  filteredProperties, 
+  filters, 
+  transactionTypes, 
+  propertyTypes, 
   setFilters,
-  getProperties
+  getProperties,
+  viewProperty
 } = useProperties()
 
-// Track favorite state for each property
-const favoriteProperties = ref<Record<string, boolean>>({})
 
-const toggleFavorite = (propertyId: string) => {
-  favoriteProperties.value[propertyId] = !favoriteProperties.value[propertyId]
-  // TODO: Add API call to save favorite state
-}
 
-// Load properties when the component is mounted
-onMounted(() => {
-  getProperties()
+// Cargar favoritos al montar el componente
+onMounted(async () => {
+  if (isAuthenticated.value) {
+    await loadFavorites()
+  }
+  await getProperties()
 })
+
+const toggleFavorite = async (property: any, event: MouseEvent) => {
+  event.stopPropagation()
+  
+  if (!isAuthenticated.value) {
+    // Redirigir al login si no está autenticado
+    router.push('/login')
+    return
+  }
+
+  try {
+    if (isFavorite('property', property.id)) {
+      // Encontrar el ID del favorito para eliminarlo
+      const fav = favorites.value.find((f: any) => f.property_id === property.id)
+      if (fav) {
+        await removeFromFavorites(fav.id)
+      }
+    } else {
+      await addToFavorites('property', property.id)
+    }
+  } catch (error) {
+    console.error('Error al actualizar favoritos:', error)
+  }
+}
 
 const colombianCities = [
   'Bogotá',

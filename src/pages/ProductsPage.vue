@@ -144,7 +144,8 @@ const {
   selectedCategory,
   searchProducts, 
   filterByCategory, 
-  setSortBy 
+  setSortBy,
+  setPriceRange 
 } = useProducts()
 
 const searchInput = ref('')
@@ -165,8 +166,7 @@ const handleSortChange = () => {
 }
 
 const handlePriceFilter = () => {
-  // This would be implemented with more sophisticated filtering
-  // For now, we'll keep it simple
+  setPriceRange(priceRange.value)
 }
 
 // Initialize from route params

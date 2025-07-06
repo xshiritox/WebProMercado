@@ -7,11 +7,11 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="text-center py-12">
-      <AlertCircle class="w-16 h-16 text-red-500 mx-auto mb-4" />
+      <IconAlertCircle class="w-16 h-16 text-red-500 mx-auto mb-4" />
       <h3 class="text-xl font-semibold text-gray-900 mb-2">Error al cargar el servicio</h3>
       <p class="text-gray-600 mb-6">{{ error }}</p>
       <button @click="loadService" class="btn-primary">
-        <RefreshCw class="w-4 h-4 mr-2" />
+        <IconRefreshCw class="w-4 h-4 mr-2" />
         Reintentar
       </button>
     </div>
@@ -25,7 +25,7 @@
           <div class="aspect-w-16 aspect-h-9 bg-gray-100">
             <div class="w-full h-96 flex items-center justify-center overflow-hidden">
               <div v-if="!service.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center">
-                <Wrench class="w-16 h-16 mb-4" />
+                <IconWrench class="w-16 h-16 mb-4" />
                 <span class="text-lg">Sin imagen disponible</span>
               </div>
               <img
@@ -43,11 +43,23 @@
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
           <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ service.title }}</h1>
           
-          <div class="flex items-center mb-6">
-            <span class="bg-primary-100 text-primary-800 text-sm font-medium px-2.5 py-0.5 rounded">
-              {{ service.category }}
-            </span>
-            <span class="ml-4 text-sm text-gray-500">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+              <span class="bg-primary-100 text-primary-800 text-sm font-medium px-2.5 py-0.5 rounded">
+                {{ service.category }}
+              </span>
+              <button 
+                @click="toggleFavorite"
+                class="ml-4 p-2 text-gray-400 hover:text-red-500 transition-colors duration-200"
+                :title="isFavoriteService ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+              >
+                <IconHeart 
+                  :class="{ 'text-red-500 fill-current': isFavoriteService, 'text-gray-400': !isFavoriteService }" 
+                  class="w-5 h-5" 
+                />
+              </button>
+            </div>
+            <span class="text-sm text-gray-500">
               Publicado el {{ formatDate(service.created_at) }}
             </span>
           </div>
@@ -60,7 +72,7 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Detalles del servicio</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="flex items-start">
-                <Calendar class="w-5 h-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                <IconCalendar class="w-4 h-4 text-gray-400 mr-1" />
                 <div>
                   <span class="text-gray-600">Disponibilidad: </span>
                   <span v-if="!service.availability || service.availability.length === 0" class="text-gray-600">A convenir</span>
@@ -76,11 +88,11 @@
                 </div>
               </div>
               <div class="flex items-center">
-                <Clock class="w-5 h-5 text-gray-400 mr-2" />
+                <IconClock class="w-5 h-5 text-gray-400 mr-2" />
                 <span class="text-gray-600">Tiempo de respuesta: {{ service.response_time || 'A convenir' }}</span>
               </div>
               <div class="flex items-center">
-                <MapPin class="w-5 h-5 text-gray-400 mr-2" />
+                <IconMapPin class="w-4 h-4 text-gray-400 mr-1" />
                 <span class="text-gray-600">Ubicación: {{ service.location || 'No especificada' }}</span>
               </div>
             </div>
@@ -112,7 +124,7 @@
               @click="callOwner"
               class="w-full btn-primary justify-center"
             >
-              <Phone class="w-4 h-4 mr-2" />
+              <IconPhone class="w-4 h-4 mr-2" />
               Llamar al Propietario
             </button>
             
@@ -121,7 +133,7 @@
               @click="openWhatsApp"
               class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
             >
-              <MessageCircle class="w-4 h-4" />
+              <IconMessageCircle class="w-4 h-4" />
               Contactar por WhatsApp
             </button>
             
@@ -129,7 +141,7 @@
               @click="showMessageModal = true"
               class="w-full btn-outline justify-center"
             >
-              <Mail class="w-4 h-4 mr-2" />
+              <IconMail class="w-4 h-4 mr-2" />
               Enviar Mensaje
             </button>
             
@@ -137,7 +149,7 @@
               @click="showReportModal = true"
               class="w-full text-red-600 hover:bg-red-50 border border-red-200 font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 mt-2"
             >
-              <Flag class="w-4 h-4" />
+              <IconFlag class="w-4 h-4" />
               Reportar este servicio
             </button>
           </div>
@@ -149,7 +161,7 @@
           <div class="flex items-center mb-4">
             <div class="relative">
               <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                <User v-if="!service.profile?.avatar_url" class="w-8 h-8 text-gray-400" />
+                <IconUser v-if="!service.profile?.avatar_url" class="w-8 h-8 text-gray-400" />
                 <img 
                   v-else
                   :src="service.profile.avatar_url" 
@@ -159,14 +171,14 @@
               </div>
               <div v-if="service.profile?.badge === 'verified'" class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
                 <div class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                  <Check class="w-2.5 h-2.5 text-white" />
+                  <IconCheck class="w-2.5 h-2.5 text-white" />
                 </div>
               </div>
             </div>
             <div class="ml-4">
               <h4 class="font-semibold text-gray-900">{{ service.profile?.full_name || 'Anónimo' }}</h4>
               <div class="flex items-center text-sm text-gray-500">
-                <Star class="w-4 h-4 text-yellow-400 mr-1" />
+                <IconStar class="w-4 h-4 text-yellow-400 fill-current" />
                 <span>5.0</span>
               </div>
             </div>
@@ -202,23 +214,63 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useFavorites } from '@/composables/useFavorites'
 import { 
-  Wrench, Calendar, Clock, MapPin, User, Star, Check, Flag, MessageCircle, 
-  RefreshCw, AlertCircle, Phone, Mail
+  Wrench as IconWrench, 
+  Calendar as IconCalendar, 
+  Clock as IconClock, 
+  MapPin as IconMapPin, 
+  User as IconUser, 
+  Star as IconStar, 
+  Check as IconCheck, 
+  Flag as IconFlag, 
+  MessageCircle as IconMessageCircle, 
+  RefreshCw as IconRefreshCw, 
+  AlertCircle as IconAlertCircle, 
+  Phone as IconPhone, 
+  Mail as IconMail, 
+  Heart as IconHeart
 } from 'lucide-vue-next'
 import ReportModal from '@/components/ReportModal.vue'
 import MessageModal from '@/components/MessageModal.vue'
 import { supabase } from '../lib/supabase'
 
 const route = useRoute()
+const service = ref<any>(null)
 
 const showReportModal = ref(false)
 const showMessageModal = ref(false)
 const loading = ref(true)
-const error = ref('')
-const service = ref<any>(null)
+const error = ref<string | null>(null)
+const { 
+  addToFavorites, 
+  removeFromFavorites, 
+  isFavorite: checkIfFavorite, 
+  loadFavorites, 
+  favorites
+} = useFavorites()
+const isFavoriteService = ref(false)
+
+// Update favorite status when service or favorites change
+const updateFavoriteStatus = () => {
+  if (service.value) {
+    isFavoriteService.value = checkIfFavorite('service', service.value.id)
+  }
+}
+
+// Initialize the component
+onMounted(() => {
+  loadService().then(() => {
+    updateFavoriteStatus()
+    loadFavorites()
+  })
+})
+
+// Watch for changes in service and favorites
+watch(() => service.value, updateFavoriteStatus)
+watch(() => favorites.value, updateFavoriteStatus)
 
 const daysOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
@@ -323,9 +375,25 @@ const handleReported = () => {
   // Aquí podrías mostrar un mensaje de éxito si lo deseas
 }
 
-onMounted(() => {
-  loadService()
-})
+const toggleFavorite = async () => {
+  if (!service.value) return
+  
+  try {
+    if (isFavoriteService.value) {
+      // Find the favorite to remove it
+      const favorite = favorites.value.find(fav => fav.service_id === service.value.id)
+      if (favorite) {
+        await removeFromFavorites(favorite.id)
+      }
+    } else {
+      await addToFavorites('service', service.value.id)
+    }
+  } catch (error) {
+    console.error('Error toggling favorite:', error)
+  }
+}
+
+// Moved to the onMounted hook above
 </script>
 
 <style scoped>

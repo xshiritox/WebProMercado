@@ -14,7 +14,7 @@
 
   <div v-else-if="!property" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="text-center py-12">
-      <AlertCircle class="w-16 h-16 text-gray-400 mx-auto mb-4" />
+      <IconAlertCircle class="w-16 h-16 text-red-500 mx-auto mb-4" />
       <h2 class="text-2xl font-bold text-gray-900 mb-2">Propiedad no encontrada</h2>
       <p class="text-gray-600 mb-6">La propiedad que buscas no existe o ha sido eliminada</p>
       <router-link to="/properties" class="btn-primary">
@@ -31,13 +31,13 @@
           <router-link to="/" class="text-gray-500 hover:text-primary-600">Inicio</router-link>
         </li>
         <li>
-          <ChevronRight class="w-4 h-4 text-gray-500" />
+          <IconChevronRight class="w-4 h-4 text-gray-500" />
         </li>
         <li>
           <router-link to="/properties" class="text-gray-500 hover:text-primary-600">Propiedades</router-link>
         </li>
         <li>
-          <ChevronRight class="w-4 h-4 text-gray-500" />
+          <IconChevronRight class="w-4 h-4 text-gray-500" />
         </li>
         <li>
           <span class="text-gray-900">{{ property.title }}</span>
@@ -58,7 +58,7 @@
               style="max-height: 24rem;"
             />
             <div v-else class="w-full h-96 bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400 p-4">
-              <ImageOff class="w-16 h-16 mb-4" />
+              <IconImageOff class="w-12 h-12 text-gray-300" />
               <span class="text-lg text-center">Sin imagen disponible</span>
             </div>
           </div>
@@ -94,9 +94,19 @@
                 {{ property.transaction_type === 'venta' ? 'Venta' : 'Alquiler' }}
               </span>
               <span v-if="property.featured" class="bg-secondary-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                <Star class="w-3 h-3" />
+                <IconStar class="w-3 h-3" />
                 Destacado
               </span>
+              <button 
+                @click="toggleFavorite"
+                class="ml-2 p-2 text-gray-400 hover:text-red-500 transition-colors duration-200"
+                :title="isFavoriteProperty ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+              >
+                <IconHeart 
+                  :class="{ 'text-red-500 fill-current': isFavoriteProperty, 'text-gray-400': !isFavoriteProperty }" 
+                  class="w-5 h-5" 
+                />
+              </button>
             </div>
           </div>
           
@@ -105,7 +115,7 @@
               ${{ formatPrice(property.price) }}
             </div>
             <div class="flex items-center gap-1 text-sm text-gray-600">
-              <MapPin class="w-4 h-4" />
+              <IconMapPin class="w-4 h-4" />
               <span>{{ property.location }}</span>
             </div>
           </div>
@@ -157,9 +167,7 @@
           <h3 class="text-lg font-semibold text-gray-900 mb-4">Información del Propietario</h3>
           
           <div class="flex items-center gap-4 mb-4">
-            <div class="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center">
-              <User class="w-6 h-6 text-white" />
-            </div>
+            <IconUser class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center" />
             <div>
               <div class="flex items-center gap-2">
                 <h4 class="font-semibold text-gray-900">{{ property.profiles?.full_name }}</h4>
@@ -172,7 +180,7 @@
                 </span>
               </div>
               <div class="flex items-center gap-1 text-sm text-gray-600">
-                <Star class="w-4 h-4 text-yellow-500" />
+                <IconStar class="w-4 h-4 text-yellow-400 mr-1" />
                 <span>5.0</span>
               </div>
             </div>
@@ -185,7 +193,7 @@
               @click="callOwner"
               class="w-full btn-primary justify-center"
             >
-              <Phone class="w-4 h-4" />
+              <IconPhone class="w-4 h-4" />
               Llamar al Propietario
             </button>
             
@@ -194,7 +202,7 @@
               @click="openWhatsApp"
               class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center"
             >
-              <MessageCircle class="w-4 h-4" />
+              <IconMessageCircle class="w-4 h-4 text-gray-400 mr-1" />
               Contactar por WhatsApp
             </button>
             
@@ -202,7 +210,7 @@
               @click="showMessageModal = true"
               class="w-full btn-outline justify-center"
             >
-              <MessageCircle class="w-4 h-4" />
+              <IconMessageCircle class="w-4 h-4 text-gray-400 mr-1" />
               Enviar Mensaje
             </button>
             
@@ -210,7 +218,7 @@
               @click="showReportModal = true"
               class="w-full text-red-600 hover:bg-red-50 border border-red-200 font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center gap-2 justify-center mt-2"
             >
-              <Flag class="w-4 h-4" />
+              <IconFlag class="w-4 h-4" />
               Reportar esta propiedad
             </button>
           </div>
@@ -258,12 +266,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useFavorites } from '@/composables/useFavorites'
 import MessageModal from '@/components/MessageModal.vue'
 import { 
-  Star, MapPin, User, Phone, MessageCircle, ChevronRight, 
-  AlertCircle, ImageOff, Flag
+  Star as IconStar, 
+  MapPin as IconMapPin, 
+  User as IconUser, 
+  Phone as IconPhone, 
+  MessageCircle as IconMessageCircle, 
+  ChevronRight as IconChevronRight, 
+  AlertCircle as IconAlertCircle, 
+  ImageOff as IconImageOff, 
+  Flag as IconFlag, 
+  Heart as IconHeart
 } from 'lucide-vue-next'
 import ReportModal from '@/components/ReportModal.vue'
 import { supabase } from '../lib/supabase'
@@ -274,6 +291,33 @@ const property = ref<any>(null)
 const relatedProperties = ref<any[]>([])
 const loading = ref(true)
 const currentImage = ref('')
+const { 
+  addToFavorites, 
+  removeFromFavorites, 
+  isFavorite: checkIfFavorite, 
+  loadFavorites, 
+  favorites
+} = useFavorites()
+const isFavoriteProperty = ref(false)
+
+// Update favorite status when property or favorites change
+const updateFavoriteStatus = () => {
+  if (property.value) {
+    isFavoriteProperty.value = checkIfFavorite('property', property.value.id)
+  }
+}
+
+// Call updateFavoriteStatus initially and when property changes
+onMounted(() => {
+  updateFavoriteStatus()
+  loadFavorites()
+})
+
+watch(() => property.value, updateFavoriteStatus)
+
+// Watch for changes in favorites and update the local state
+watch(() => favorites.value, updateFavoriteStatus)
+
 const showReportModal = ref(false)
 const showMessageModal = ref(false)
 
@@ -354,11 +398,27 @@ const openWhatsApp = () => {
   }
 }
 
-
+const toggleFavorite = async () => {
+  if (!property.value) return
+  
+  try {
+    if (isFavoriteProperty.value) {
+      // Find the favorite to remove it
+      const favorite = favorites.value.find(fav => fav.property_id === property.value.id)
+      if (favorite) {
+        await removeFromFavorites(favorite.id)
+      }
+    } else {
+      await addToFavorites('property', property.value.id)
+    }
+  } catch (error) {
+    console.error('Error toggling favorite:', error)
+  }
+}
 
 const handleReported = () => {
-  showReportModal.value = false
-  // Aquí podrías mostrar un mensaje de éxito si lo deseas
+  // Handle report
+  console.log('Property reported')
 }
 
 const getProperty = async (id: string) => {
@@ -390,6 +450,12 @@ const getProperty = async (id: string) => {
 onMounted(async () => {
   const propertyId = route.params.id as string
   currentImage.value = ''
+  
+  try {
+    await loadFavorites()
+  } catch (error) {
+    console.error('Error loading favorites:', error)
+  }
   
   try {
     property.value = await getProperty(propertyId)

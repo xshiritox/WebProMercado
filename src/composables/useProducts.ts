@@ -7,6 +7,7 @@ const loading = ref(false)
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const sortBy = ref('created_at')
+const priceRange = ref('')
 
 export const useProducts = () => {
   const toast = useToast()
@@ -37,6 +38,25 @@ export const useProducts = () => {
 
     if (selectedCategory.value) {
       filtered = filtered.filter(product => product.category === selectedCategory.value)
+    }
+    
+    // Aplicar filtro de rango de precios si existe
+    if (priceRange.value) {
+      if (priceRange.value.endsWith('+')) {
+        // Manejar el caso de "Más de X" (ej: "5000000+")
+        const min = Number(priceRange.value.replace('+', ''))
+        filtered = filtered.filter(product => {
+          const price = Number(product.price)
+          return !isNaN(price) && price >= min
+        })
+      } else {
+        // Manejar rangos normales (ej: "100000-500000")
+        const [min, max] = priceRange.value.split('-').map(Number)
+        filtered = filtered.filter(product => {
+          const price = Number(product.price)
+          return !isNaN(price) && price >= min && price <= max
+        })
+      }
     }
 
     // Sort products
@@ -239,6 +259,10 @@ export const useProducts = () => {
     sortBy.value = sort
   }
 
+  const setPriceRange = (range: string) => {
+    priceRange.value = range
+  }
+
   return {
     products: computed(() => products.value),
     filteredProducts,
@@ -247,6 +271,7 @@ export const useProducts = () => {
     searchQuery: computed(() => searchQuery.value),
     selectedCategory: computed(() => selectedCategory.value),
     sortBy: computed(() => sortBy.value),
+    priceRange: computed(() => priceRange.value),
     getProducts,
     getProduct,
     createProduct,
@@ -254,6 +279,7 @@ export const useProducts = () => {
     deleteProduct,
     searchProducts,
     filterByCategory,
-    setSortBy
+    setSortBy,
+    setPriceRange
   }
 }
