@@ -4,32 +4,10 @@
       <div class="flex justify-between items-center h-16">
         <!-- Logo -->
         <div class="flex items-center">
-          <router-link to="/" class="flex items-center space-x-2">
-            <div class="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-500 rounded-lg flex items-center justify-center">
-              <ShoppingBag class="w-5 h-5 text-white" />
-            </div>
-            <span class="text-xl font-bold gradient-text">PubliNet</span>
+          <router-link to="/" class="flex items-center space-x-2 group">
+            <img src="/Logo.webp" alt="Kroma Logo" class="h-10 w-auto transition-transform duration-300 group-hover:scale-105 rounded-lg">
+            <span class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">Kroma</span>
           </router-link>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="flex-1 max-w-2xl mx-8">
-          <div class="relative">
-            <input
-              v-model="searchQuery"
-              @keyup.enter="handleSearch"
-              type="text"
-              placeholder="¿Qué estás buscando?"
-              class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-            <Search class="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            <button
-              @click="handleSearch"
-              class="absolute right-2 top-1.5 px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-            >
-              <Search class="w-4 h-4" />
-            </button>
-          </div>
         </div>
 
         <!-- Navigation Links -->
@@ -211,21 +189,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ShoppingBag, Search, User, ChevronDown, Menu } from 'lucide-vue-next'
+import { User, ChevronDown, Menu } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
 const { isAuthenticated, isAdmin, profile, signOut } = useAuth()
 
-const searchQuery = ref('')
 const showUserMenu = ref(false)
 const showMobileMenu = ref(false)
-
-const handleSearch = () => {
-  if (searchQuery.value.trim()) {
-    router.push({ name: 'products', query: { search: searchQuery.value } })
-  }
-}
 
 const handleSignOut = async (e?: Event) => {
   e?.preventDefault()

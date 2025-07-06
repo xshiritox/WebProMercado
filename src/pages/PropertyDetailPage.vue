@@ -392,7 +392,7 @@ const callOwner = () => {
 
 const openWhatsApp = () => {
   if (property.value?.profiles?.phone) {
-    const message = `Hola, estoy interesado en tu propiedad "${property.value.title}" publicada en PubliNet.`
+    const message = `Hola, estoy interesado en tu propiedad "${property.value.title}" publicada en Kroma.`
     const phone = property.value.profiles.phone.replace(/\D/g, '')
     window.open(`https://wa.me/57${phone}?text=${encodeURIComponent(message)}`)
   }

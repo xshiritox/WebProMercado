@@ -1,5 +1,5 @@
 /*
-  # Esquema completo de la base de datos para PubliNet
+  # Esquema completo de la base de datos para Kroma
 
   1. Nuevas Tablas
     - `profiles` - Perfiles de usuario con información adicional

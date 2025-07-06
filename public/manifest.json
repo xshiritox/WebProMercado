@@ -1,6 +1,6 @@
 {
-  "name": "PubliNet",
-  "short_name": "PubliNet",
+  "name": "Kroma",
+  "short_name": "Kroma",
   "description": "Tu mercado en línea para comprar y vender productos, propiedades y servicios",
   "start_url": "/",
   "display": "standalone",

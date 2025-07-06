@@ -4,6 +4,10 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = 'https://xnzkzdbgmrdinsojqedw.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhuemt6ZGJnbXJkaW5zb2pxZWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzNzE3MTksImV4cCI6MjA2Njk0NzcxOX0.ImzeMJv49i5sE1osP-TrHvTi8tf2Z37r7ltTX97TuzA'
 
+// IMPORTANTE: En producción, considera mover esta lógica a un backend seguro o usar Edge Functions
+// para no exponer la Service Role Key en el frontend
+const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhuemt6ZGJnbXJkaW5zb2pxZWR3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTM3MTcxOSwiZXhwIjoyMDY2OTQ3NzE5fQ.yR1jxxf_O5b2C8ARqB2SIQa8tMUdDWncJJMFCVXZ7rA'
+
 // Opciones de configuración para Supabase
 const supabaseOptions = {
   auth: {
@@ -19,7 +23,18 @@ const supabaseOptions = {
   }
 }
 
+// Cliente para operaciones normales (usa la clave anónima)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, supabaseOptions)
+
+// Cliente para operaciones de administración (usa la Service Role Key)
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  ...supabaseOptions,
+  auth: {
+    ...supabaseOptions.auth,
+    autoRefreshToken: false,
+    persistSession: false
+  }
+})
 
 export type Database = {
   public: {

@@ -67,8 +67,8 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center">
           <IconStar class="w-4 h-4 text-yellow-400 fill-current mr-1" />
-          <span class="text-gray-600 text-sm">4.8</span>
-          <span class="text-gray-400 text-sm ml-1">(24)</span>
+          <span class="text-gray-600 text-sm">5.0</span>
+          <span class="text-gray-400 text-sm ml-1"></span>
         </div>
         <span class="text-sm text-gray-600">{{ product.profiles?.full_name }}</span>
       </div>

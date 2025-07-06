@@ -605,6 +605,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { supabase, supabaseAdmin } from '../lib/supabase'
 // Importaciones dinámicas de íconos
 import { defineAsyncComponent } from 'vue'
 
@@ -622,8 +623,6 @@ const ImageOff = defineAsyncComponent(() => import('lucide-vue-next').then(m => 
 const AlertTriangle = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.AlertTriangle))
 const CheckCircle2 = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.CheckCircle2))
 const Settings = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Settings))
-import { supabase } from '../lib/supabase'
-
 // Tipos de datos
 interface UserType {
   id: string
@@ -1071,24 +1070,49 @@ const editUser = (user: UserType) => {
 }
 
 const deleteUser = async (userId: string) => {
-  if (!confirm('¿Estás seguro de que quieres eliminar este usuario?')) return
+  if (!confirm('¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.')) return
   
   try {
-    const { error } = await supabase
+    // 1. Primero eliminamos el perfil usando el cliente de administración
+    const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .delete()
       .eq('id', userId)
     
-    if (error) throw error
+    if (profileError) throw profileError
     
-    // Actualizar lista de usuarios
+    // 2. Luego eliminamos el usuario de autenticación
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    
+    if (authError) {
+      console.error('Error eliminando usuario de autenticación:', authError)
+      throw new Error('No se pudo eliminar el usuario de autenticación')
+    }
+    
+    // 3. Actualizar la lista de usuarios localmente
     users.value = users.value.filter((u: UserType) => u.id !== userId)
     stats.value.totalUsers--
     
+    // Mostrar notificación de éxito
     alert('Usuario eliminado correctamente')
-  } catch (error) {
+    
+    // Recargar la lista de usuarios para asegurar consistencia
+    await loadUsers()
+    
+  } catch (error: any) {
     console.error('Error eliminando usuario:', error)
-    alert('Error al eliminar el usuario')
+    
+    // Mensaje de error más descriptivo
+    let errorMessage = 'Error al eliminar el usuario. '
+    if (error.message.includes('permission denied')) {
+      errorMessage += 'No tienes permisos para realizar esta acción.'
+    } else if (error.message.includes('User not found')) {
+      errorMessage += 'El usuario no fue encontrado.'
+    } else {
+      errorMessage += 'Por favor, verifica la consola para más detalles.'
+    }
+    
+    alert(errorMessage)
   }
 }
 

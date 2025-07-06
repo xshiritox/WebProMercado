@@ -8,7 +8,7 @@
             <div class="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-500 rounded-lg flex items-center justify-center">
               <ShoppingBag class="w-5 h-5 text-white" />
             </div>
-            <span class="text-xl font-bold">PubliNet</span>
+            <span class="text-xl font-bold">Kroma</span>
           </div>
           <p class="text-gray-300">
             La plataforma número uno en Colombia para la compra y venta de productos, 
@@ -43,7 +43,7 @@
       <!-- Copyright -->
       <div class="border-t border-gray-800 pt-6">
         <p class="text-center text-gray-400 text-sm">
-          &copy; 2025 PubliNet. Todos los derechos reservados.
+          &copy; 2025 Kroma. Todos los derechos reservados.
         </p>
       </div>
     </div>
