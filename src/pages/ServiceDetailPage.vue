@@ -364,7 +364,7 @@ const openWhatsApp = () => {
   if (service.value?.profile?.phone) {
     const message = `Hola, estoy interesado en tu servicio "${service.value.title}" publicado en Kroma.`
     const phone = service.value.profile.phone.replace(/\D/g, '')
-    window.open(`https://wa.me/57${phone}?text=${encodeURIComponent(message)}`)
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`)
   }
 }
 
