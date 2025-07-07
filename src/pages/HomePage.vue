@@ -75,26 +75,6 @@
           </p>
         </div>
 
-        <!-- Filter Tabs -->
-        <div class="flex justify-center mb-8">
-          <div class="bg-white rounded-xl p-1 shadow-lg border border-gray-100">
-            <button
-              v-for="tab in filterTabs"
-              :key="tab.id"
-              @click="activeFilter = tab.id"
-              :class="[
-                'px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2',
-                activeFilter === tab.id
-                  ? 'bg-primary-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
-              ]"
-            >
-              <component :is="tab.icon" class="w-4 h-4" />
-              {{ tab.name }}
-            </button>
-          </div>
-        </div>
-
         <!-- Loading Skeleton -->
         <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div v-for="i in 8" :key="i" class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
@@ -116,7 +96,7 @@
         <!-- Listings Grid -->
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div 
-            v-for="listing in filteredListings" 
+            v-for="listing in allListings" 
             :key="`${listing.type}-${listing.id}`"
             class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group border border-gray-100 cursor-pointer"
             @click="navigateToListing(listing)"
@@ -344,7 +324,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { 
@@ -359,21 +339,6 @@ const { isAuthenticated } = useAuth()
 const searchQuery = ref('')
 const loading = ref(true)
 const allListings = ref<any[]>([])
-const activeFilter = ref('all')
-
-const filterTabs = [
-  { id: 'all', name: 'Todos', icon: Star },
-  { id: 'products', name: 'Productos', icon: Package },
-  { id: 'properties', name: 'Propiedades', icon: Home },
-  { id: 'services', name: 'Servicios', icon: Wrench }
-]
-
-const filteredListings = computed(() => {
-  if (activeFilter.value === 'all') {
-    return allListings.value
-  }
-  return allListings.value.filter(listing => listing.type === activeFilter.value.slice(0, -1))
-})
 
 const formatPrice = (price: number): string => {
   if (!price) return '0'
