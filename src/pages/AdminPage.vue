@@ -706,7 +706,7 @@ const activeTab = ref('users')
 const userSearch = ref('')
 const productSearch = ref('')
 const showUserForm = ref(false)
-const currentUser = ref(null)
+const currentUser = ref<UserType | null>(null)
 const propertySearch = ref('')
 const serviceSearch = ref('')
 const productStatusFilter = ref('')
@@ -1086,9 +1086,31 @@ const editUser = (user: UserType) => {
   showUserForm.value = true
 }
 
-const handleUserSaved = () => {
-  loadUsers()
-  loadStats()
+const handleUserSaved = async (userData: UserType) => {
+  try {
+    const { error } = await supabaseAdmin
+      .from('profiles')
+      .upsert({
+        ...userData,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'id'
+      })
+      .select()
+    
+    if (error) throw error
+    
+    // Refresh the users list and stats
+    await loadUsers()
+    await loadStats()
+    
+    // Close the form
+    showUserForm.value = false
+    currentUser.value = null
+  } catch (error) {
+    console.error('Error al guardar el usuario:', error)
+    alert('Ocurrió un error al guardar el usuario. Por favor, inténtalo de nuevo.')
+  }
 }
 
 const openNewUserForm = () => {
