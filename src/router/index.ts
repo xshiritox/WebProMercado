@@ -19,6 +19,7 @@ import EditServicePage from '../pages/EditServicePage.vue'
 // Carga diferida del componente AdminPage
 const AdminPage = () => import('../pages/AdminPage.vue')
 import NotFoundPage from '../pages/NotFoundPage.vue'
+import HowItWorks from '../pages/HowItWorks.vue'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -136,6 +137,12 @@ export const routes: RouteRecordRaw[] = [
       
       next()
     }
+  },
+  {
+    path: '/how-it-works',
+    name: 'how-it-works',
+    component: HowItWorks,
+    meta: { title: 'Cómo funciona' }
   },
   {
     path: '/:pathMatch(.*)*',

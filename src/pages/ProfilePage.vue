@@ -32,6 +32,15 @@
               <span v-else class="px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20 text-white">
                 Sin rol asignado
               </span>
+              <button 
+                v-if="!isVIP"
+                disabled
+                class="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-400 text-white cursor-not-allowed transition-colors"
+                title="Próximamente"
+              >
+                <IconCrown class="w-4 h-4" />
+                VIP (Próximamente)
+              </button>
               <span class="text-primary-100 text-sm">
                 Miembro desde {{ formatDate(profile?.created_at) }}
               </span>
@@ -546,6 +555,11 @@
         </div>
       </div>
     </div>
+    <!-- VIP Upgrade Modal -->
+    <VIPUpgradeModal 
+      :is-open="showVIPModal" 
+      @close="showVIPModal = false"
+    />
   </div>
 </template>
 
@@ -573,10 +587,12 @@ import {
   LogOut as IconLogOut,
   Plus as IconPlus,
   ImageOff as IconImageOff,
-  Inbox as IconInbox
+  Inbox as IconInbox,
+  Crown as IconCrown
 } from 'lucide-vue-next'
 import MessageModal from '../components/MessageModal.vue'
 import MessagesList from '../components/MessagesList.vue'
+import VIPUpgradeModal from '../components/VIPUpgradeModal.vue'
 
 const router = useRouter()
 const { profile, loading, updateProfile, signOut } = useAuth()
@@ -586,6 +602,11 @@ const { favorites, loading: loadingFavorites, loadFavorites, removeFromFavorites
 const toast = useToast()
 
 const activeTab = ref('messages')
+const isVIP = computed(() => profile.value?.badge === 'vip')
+const showVIPModal = ref(false)
+
+// Handle VIP upgrade
+// VIP upgrade is now handled by the VIPUpgradeModal component
 const showMessageModal = ref(false)
 const replyData = reactive({
   recipientId: '',

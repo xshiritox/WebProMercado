@@ -263,15 +263,14 @@
             <div class="flex items-center justify-between">
               <div>
                 <h4 class="font-medium text-gray-900">Propiedad Destacada</h4>
-                <p class="text-sm text-gray-600">Tu propiedad aparecerá en la parte superior</p>
+                <p class="text-sm text-gray-600">Próximamente</p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-lg font-semibold text-secondary-600">$25,000</span>
+                <span class="text-gray-400">$0.99</span>
                 <input
-                  id="featured"
-                  v-model="form.featured"
                   type="checkbox"
-                  class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  disabled
+                  class="h-4 w-4 text-gray-400 bg-gray-100 border-gray-300 rounded"
                 />
               </div>
             </div>
@@ -301,6 +300,16 @@
       </form>
     </div>
   </div>
+
+  <!-- Premium Feature Modal -->
+  <PremiumFeatureModal
+    :is-open="showPremiumModal"
+    @close="showPremiumModal = false"
+    @payment-success="form.featured = true"
+    title="Destacar Propiedad"
+  description="Tu propiedad aparecerá en la parte superior de los resultados de búsqueda y tendrá mayor visibilidad."
+  paypal-description="Destacado de propiedad"
+/>
 </template>
 
 <script setup lang="ts">
@@ -312,9 +321,11 @@ import { useAuth } from '../composables/useAuth'
 import { useToast } from 'vue-toastification'
 import imageCompression from 'browser-image-compression'
 import { supabase } from '../lib/supabase'
+import PremiumFeatureModal from '../components/PremiumFeatureModal.vue'
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const dragOver = ref(false)
+const showPremiumModal = ref(false)
 
 const router = useRouter()
 const toast = useToast()
@@ -437,6 +448,7 @@ const removeImage = (index: number) => {
   previewImages.value.splice(index, 1)
   form.images.splice(index, 1)
 }
+
 
 const handleSubmit = async () => {
   if (!isFormValid.value) {

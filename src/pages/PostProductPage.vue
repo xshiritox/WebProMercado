@@ -208,20 +208,29 @@
             <div class="flex items-center justify-between">
               <div>
                 <h4 class="font-medium text-gray-900">Producto Destacado</h4>
-                <p class="text-sm text-gray-600">Tu producto aparecerá en la parte superior</p>
+                <p class="text-sm text-gray-600">Próximamente</p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-lg font-semibold text-secondary-600">$15,000</span>
+                <span class="text-gray-400">$0.99</span>
                 <input
-                  id="featured"
-                  v-model="form.featured"
                   type="checkbox"
-                  class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  disabled
+                  class="h-4 w-4 text-gray-400 bg-gray-100 border-gray-300 rounded"
                 />
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Premium Feature Modal -->
+        <PremiumFeatureModal
+          :is-open="showPremiumModal"
+          title="Destacar Producto"
+          description="Tu producto aparecerá en la parte superior de los resultados de búsqueda y tendrá mayor visibilidad."
+          paypal-description="Destacado de producto"
+          @close="showPremiumModal = false"
+          @payment-success="form.featured = true"
+        />
 
         <!-- Submit Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-end">
@@ -250,7 +259,6 @@
 
 <script setup lang="ts">
 import { reactive, computed, onMounted, ref } from 'vue'
-
 import { useRouter } from 'vue-router'
 import { Package, ImageIcon, Loader2 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
@@ -258,9 +266,11 @@ import { useProducts } from '../composables/useProducts'
 import { useToast } from 'vue-toastification'
 import imageCompression from 'browser-image-compression'
 import { supabase } from '../lib/supabase'
+import PremiumFeatureModal from '../components/PremiumFeatureModal.vue'
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const dragOver = ref(false)
+const showPremiumModal = ref(false)
 
 const router = useRouter()
 const toast = useToast()
@@ -381,6 +391,7 @@ const removeImage = (index: number) => {
   previewImages.value.splice(index, 1)
   form.images.splice(index, 1)
 }
+
 
 const handleSubmit = async () => {
   console.log('Iniciando envío del formulario...')

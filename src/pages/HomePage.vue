@@ -242,43 +242,71 @@
         </p>
         
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <router-link
-            v-if="!isAuthenticated"
-            to="/register"
-            class="group relative bg-white text-primary-600 hover:bg-gray-50 font-medium py-4 px-8 rounded-xl transition-all duration-300 flex items-center gap-2 justify-center text-lg hover:shadow-2xl hover:-translate-y-1"
-          >
-            <span class="relative z-10 flex items-center gap-2">
-              <UserPlus class="w-5 h-5" />
-              Crear Cuenta Gratis
-            </span>
-            <span class="absolute inset-0 rounded-xl bg-gradient-to-r from-white to-gray-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-          </router-link>
+          <template v-if="!isAuthenticated">
+            <router-link
+              to="/register"
+              class="group relative bg-white text-primary-600 hover:bg-gray-50 font-medium py-4 px-8 rounded-xl transition-all duration-300 flex items-center gap-2 justify-center text-lg hover:shadow-2xl hover:-translate-y-1"
+            >
+              <span class="relative z-10 flex items-center gap-2">
+                <UserPlus class="w-5 h-5" />
+                Crear Cuenta Gratis
+              </span>
+              <span class="absolute inset-0 rounded-xl bg-gradient-to-r from-white to-gray-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            </router-link>
+          </template>
           
-          <router-link
-            v-else
-            to="/post-product"
-            class="group relative bg-white text-primary-600 hover:bg-gray-50 font-medium py-4 px-8 rounded-xl transition-all duration-300 flex items-center gap-2 justify-center text-lg hover:shadow-2xl hover:-translate-y-1"
-          >
-            <span class="relative z-10 flex items-center gap-2">
-              <Plus class="w-5 h-5" />
-              Publicar Producto
-            </span>
-            <span class="absolute inset-0 rounded-xl bg-gradient-to-r from-white to-gray-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-          </router-link>
-          
-          <router-link
-            to="/how-it-works"
-            class="group relative bg-transparent border-2 border-white/20 hover:border-white/40 text-white hover:bg-white/10 font-medium py-4 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 justify-center text-lg"
-          >
-            <span class="relative z-10 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
-              Cómo funciona
-            </span>
-          </router-link>
+          <template v-else>
+            <div class="flex flex-col items-center gap-4 w-full">
+              <div class="flex flex-wrap gap-4 justify-center w-full">
+                <router-link
+                  to="/post-product"
+                  class="group relative bg-white text-primary-600 hover:bg-gray-50 font-medium py-4 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 justify-center text-lg hover:shadow-2xl hover:-translate-y-1 whitespace-nowrap"
+                >
+                  <span class="relative z-10 flex items-center gap-2">
+                    <Plus class="w-5 h-5" />
+                    Publicar Producto
+                  </span>
+                  <span class="absolute inset-0 rounded-xl bg-gradient-to-r from-white to-gray-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </router-link>
+                
+                <router-link
+                  to="/post-property"
+                  class="group relative bg-white text-primary-600 hover:bg-gray-50 font-medium py-4 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 justify-center text-lg hover:shadow-2xl hover:-translate-y-1 whitespace-nowrap"
+                >
+                  <span class="relative z-10 flex items-center gap-2">
+                    <Plus class="w-5 h-5" />
+                    Publicar Propiedad
+                  </span>
+                  <span class="absolute inset-0 rounded-xl bg-gradient-to-r from-white to-gray-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </router-link>
+                
+                <router-link
+                  to="/post-service"
+                  class="group relative bg-white text-primary-600 hover:bg-gray-50 font-medium py-4 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 justify-center text-lg hover:shadow-2xl hover:-translate-y-1 whitespace-nowrap"
+                >
+                  <span class="relative z-10 flex items-center gap-2">
+                    <Plus class="w-5 h-5" />
+                    Publicar Servicio
+                  </span>
+                  <span class="absolute inset-0 rounded-xl bg-gradient-to-r from-white to-gray-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </router-link>
+              </div>
+              
+              <router-link
+                to="/how-it-works"
+                class="group relative bg-transparent border-2 border-white/20 hover:border-white/40 text-white hover:bg-white/10 font-medium py-4 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 justify-center text-lg w-full sm:w-auto"
+              >
+                <span class="relative z-10 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  Cómo funciona
+                </span>
+              </router-link>
+            </div>
+          </template>
         </div>
       </div>
       

@@ -10,6 +10,8 @@
     "build:netlify": "npm run build"
   },
   "dependencies": {
+    "@headlessui/vue": "^1.7.23",
+    "@paypal/paypal-js": "^8.2.0",
     "@supabase/supabase-js": "^2.50.3",
     "@vueuse/core": "^10.5.0",
     "browser-image-compression": "^2.0.2",
