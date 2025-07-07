@@ -16,6 +16,10 @@ import ServicesPage from '../pages/ServicesPage.vue'
 import ServiceDetailPage from '../pages/ServiceDetailPage.vue'
 import PostServicePage from '../pages/PostServicePage.vue'
 import EditServicePage from '../pages/EditServicePage.vue'
+import VerificationPendingPage from '../pages/VerificationPendingPage.vue'
+import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm.vue'
+import ChangePasswordForm from '@/components/auth/ChangePasswordForm.vue'
+
 // Carga diferida del componente AdminPage
 const AdminPage = () => import('../pages/AdminPage.vue')
 import NotFoundPage from '../pages/NotFoundPage.vue'
@@ -137,6 +141,23 @@ export const routes: RouteRecordRaw[] = [
       
       next()
     }
+  },
+  {
+    path: '/verification-pending',
+    name: 'verification-pending',
+    component: VerificationPendingPage,
+    props: route => ({ email: route.query.email || '' })
+  },
+  {
+    path: '/forgot-password',
+    name: 'forgot-password',
+    component: ForgotPasswordForm
+  },
+  {
+    path: '/change-password',
+    name: 'change-password',
+    component: ChangePasswordForm,
+    // El componente manejará el hash directamente
   },
   {
     path: '/how-it-works',
