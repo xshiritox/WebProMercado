@@ -1,4 +1,13 @@
 <template>
+  <!-- Modal de edición de usuario -->
+  <UserForm
+    v-if="showUserForm"
+    :user="currentUser"
+    :is-editing="!!currentUser"
+    @saved="handleUserSaved"
+    @close="showUserForm = false"
+  />
+
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Panel de Administración</h1>
@@ -94,8 +103,12 @@
                 placeholder="Buscar usuarios..."
                 class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
-              <button class="btn-primary">
-                <Search class="w-4 h-4" />
+              <button 
+                @click="openNewUserForm"
+                class="btn-primary flex items-center gap-1.5"
+              >
+                <UserPlus class="w-4 h-4" />
+                <span class="hidden sm:inline">Nuevo Usuario</span>
               </button>
             </div>
           </div>
@@ -606,10 +619,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { supabase, supabaseAdmin } from '../lib/supabase'
+import UserForm from '../components/admin/UserForm.vue'
 // Importaciones dinámicas de íconos
 import { defineAsyncComponent } from 'vue'
 
-// Importaciones sincrónicas para íconos críticos
+// Importaciones sincrónicas para íconos
 import { Search } from 'lucide-vue-next'
 
 // Componentes asíncronos para íconos
@@ -623,6 +637,7 @@ const ImageOff = defineAsyncComponent(() => import('lucide-vue-next').then(m => 
 const AlertTriangle = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.AlertTriangle))
 const CheckCircle2 = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.CheckCircle2))
 const Settings = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.Settings))
+const UserPlus = defineAsyncComponent(() => import('lucide-vue-next').then(m => m.UserPlus))
 // Tipos de datos
 interface UserType {
   id: string
@@ -690,6 +705,8 @@ interface Report {
 const activeTab = ref('users')
 const userSearch = ref('')
 const productSearch = ref('')
+const showUserForm = ref(false)
+const currentUser = ref(null)
 const propertySearch = ref('')
 const serviceSearch = ref('')
 const productStatusFilter = ref('')
@@ -1065,8 +1082,18 @@ const formatDate = (dateString: string) => {
 }
 
 const editUser = (user: UserType) => {
-  console.log('Editar usuario:', user)
-  // Implementar lógica de edición
+  currentUser.value = { ...user }
+  showUserForm.value = true
+}
+
+const handleUserSaved = () => {
+  loadUsers()
+  loadStats()
+}
+
+const openNewUserForm = () => {
+  currentUser.value = null
+  showUserForm.value = true
 }
 
 const deleteUser = async (userId: string) => {
