@@ -266,7 +266,7 @@
                 <p class="text-sm text-gray-600">Próximamente</p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-gray-400">$0.99</span>
+                <span class="text-gray-400">$0.99 USD</span>
                 <input
                   type="checkbox"
                   disabled
