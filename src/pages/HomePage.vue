@@ -10,7 +10,6 @@
       
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
         <div class="text-center max-w-4xl mx-auto">
-  
           
           <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
             Descubre y compra en
@@ -58,73 +57,7 @@
       </div>
     </section>
 
-    <!-- Categories Section -->
-    <section class="py-16 bg-white relative">
-      <div class="absolute inset-0 bg-gradient-to-b from-white to-gray-50 -z-10"></div>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <span class="inline-block px-4 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 rounded-full mb-4">
-            Categorías
-          </span>
-          <h2 class="text-4xl font-bold text-gray-900 mb-4">Explora por categoría</h2>
-          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Descubre una amplia variedad de productos, propiedades y servicios en nuestras categorías más populares
-          </p>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          <div
-            v-for="(category, index) in categories"
-            :key="category.name"
-            @click="navigateToCategory(category.name)"
-            class="group relative bg-white rounded-2xl p-6 text-center hover:-translate-y-1 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-lg border border-gray-100 overflow-hidden"
-            :class="[
-              'hover:border-primary-100',
-              index % 3 === 0 ? 'hover:shadow-primary-100/20' : 
-              index % 3 === 1 ? 'hover:shadow-secondary-100/20' : 
-              'hover:shadow-accent-100/20'
-            ]"
-          >
-            <div class="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                 :class="[
-                   index % 3 === 0 ? 'from-primary-50/50 to-white' : 
-                   index % 3 === 1 ? 'from-secondary-50/50 to-white' : 
-                   'from-accent-50/50 to-white'
-                 ]">
-            </div>
-            <div class="relative z-10">
-              <div class="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 transition-all duration-300"
-                   :class="[
-                     'group-hover:scale-110',
-                     index % 3 === 0 ? 'bg-primary-50 text-primary-600' : 
-                     index % 3 === 1 ? 'bg-secondary-50 text-secondary-600' : 
-                     'bg-accent-50 text-accent-600'
-                   ]">
-                <component :is="category.icon" class="w-6 h-6" />
-              </div>
-              <h3 class="font-semibold text-gray-900 mb-1 text-lg group-hover:text-primary-600 transition-colors">
-                {{ category.name }}
-              </h3>
-              <p class="text-sm text-gray-500 group-hover:text-gray-600 transition-colors">
-                {{ category.count }}+ anuncios
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="mt-12 text-center">
-          <router-link 
-            to="/categories" 
-            class="inline-flex items-center gap-2 px-6 py-3 text-primary-600 hover:text-primary-700 font-medium rounded-lg border border-primary-200 hover:border-primary-300 bg-white hover:bg-primary-50 transition-all duration-200"
-          >
-            Ver todas las categorías
-            <ArrowRight class="w-5 h-5" />
-          </router-link>
-        </div>
-      </div>
-    </section>
-
-    <!-- Featured Products -->
+    <!-- Recent Listings Section -->
     <section class="py-16 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
       <!-- Decorative elements -->
       <div class="absolute inset-0 overflow-hidden opacity-10">
@@ -134,12 +67,32 @@
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <span class="inline-block px-4 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 rounded-full mb-4">
-            Productos Destacados
+            Publicaciones Recientes
           </span>
-          <h2 class="text-4xl font-bold text-gray-900 mb-4">Descubre lo más popular</h2>
+          <h2 class="text-4xl font-bold text-gray-900 mb-4">Descubre lo más nuevo</h2>
           <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Productos cuidadosamente seleccionados por nuestra comunidad
+            Las últimas publicaciones de productos, propiedades y servicios de nuestra comunidad
           </p>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex justify-center mb-8">
+          <div class="bg-white rounded-xl p-1 shadow-lg border border-gray-100">
+            <button
+              v-for="tab in filterTabs"
+              :key="tab.id"
+              @click="activeFilter = tab.id"
+              :class="[
+                'px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2',
+                activeFilter === tab.id
+                  ? 'bg-primary-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
+              ]"
+            >
+              <component :is="tab.icon" class="w-4 h-4" />
+              {{ tab.name }}
+            </button>
+          </div>
         </div>
 
         <!-- Loading Skeleton -->
@@ -160,45 +113,93 @@
           </div>
         </div>
 
-        <!-- Products Grid -->
+        <!-- Listings Grid -->
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div 
-            v-for="product in featuredProducts" 
-            :key="product.id"
-            class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group border border-gray-100"
+            v-for="listing in filteredListings" 
+            :key="`${listing.type}-${listing.id}`"
+            class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group border border-gray-100 cursor-pointer"
+            @click="navigateToListing(listing)"
           >
             <div class="relative pb-[75%] bg-gray-100 overflow-hidden">
               <img 
-                :src="product.image_url || 'https://placehold.co/400x300/e5e7eb/9ca3af?text=Sin+imagen'" 
-                :alt="product.name"
+                v-if="listing.images?.[0]"
+                :src="listing.images[0]" 
+                :alt="listing.title"
                 class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               >
+              <div v-else class="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-gray-400 p-4">
+                <component :is="getTypeIcon(listing.type)" class="w-12 h-12 mb-2" />
+                <span class="text-sm">Sin imagen</span>
+              </div>
+              
+              <!-- Type Badge -->
+              <div class="absolute top-2 left-2">
+                <span :class="getTypeBadgeClass(listing.type)" class="px-2 py-1 rounded-full text-xs font-medium text-white">
+                  {{ getTypeLabel(listing.type) }}
+                </span>
+              </div>
+              
+              <!-- Featured Badge -->
+              <div v-if="listing.featured" class="absolute top-2 right-2">
+                <span class="bg-secondary-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                  <Star class="w-3 h-3" />
+                  Destacado
+                </span>
+              </div>
+              
               <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                 <span class="text-white font-medium">Ver detalles</span>
               </div>
             </div>
+            
             <div class="p-4">
-              <h3 class="font-semibold text-gray-900 mb-1 line-clamp-1">{{ product.name }}</h3>
-              <p class="text-sm text-gray-500 mb-2 line-clamp-2 h-10">{{ product.description }}</p>
+              <h3 class="font-semibold text-gray-900 mb-1 line-clamp-1">{{ listing.title }}</h3>
+              <p class="text-sm text-gray-500 mb-2 line-clamp-2 h-10">{{ listing.description }}</p>
+              
               <div class="flex items-center justify-between mt-3">
-                <span class="text-lg font-bold text-gray-900">${{ formatPrice(product.price) }}</span>
-                <button class="text-primary-600 hover:text-primary-700 transition-colors">
-                  <Plus class="w-5 h-5" />
-                </button>
+                <span class="text-lg font-bold text-gray-900">
+                  ${{ formatPrice(listing.price || listing.price_from) }}
+                </span>
+                <div class="flex items-center gap-1 text-sm text-gray-500">
+                  <MapPin class="w-3 h-3" />
+                  <span class="truncate max-w-20">{{ listing.location }}</span>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
+                <span>{{ formatDate(listing.created_at) }}</span>
+                <span>{{ listing.profiles?.full_name || 'Usuario' }}</span>
               </div>
             </div>
           </div>
         </div>
 
         <div class="text-center mt-12">
-          <router-link
-            to="/products"
-            class="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-          >
-            Explorar todos los productos
-            <ArrowRight class="w-5 h-5" />
-          </router-link>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <router-link
+              to="/products"
+              class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <Package class="w-5 h-5" />
+              Ver todos los productos
+            </router-link>
+            <router-link
+              to="/properties"
+              class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <Home class="w-5 h-5" />
+              Ver todas las propiedades
+            </router-link>
+            <router-link
+              to="/services"
+              class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <Wrench class="w-5 h-5" />
+              Ver todos los servicios
+            </router-link>
+          </div>
         </div>
       </div>
     </section>
@@ -343,43 +344,98 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { 
-  Search, UserPlus, Plus, ArrowRight, Shield, Zap, Users,
-  Smartphone, Car, Home, Shirt, Dumbbell, Book, Building, Wrench, TrendingUp
+  Search, UserPlus, Plus, Shield, Zap, Users, TrendingUp,
+  Package, Home, Wrench, Star, MapPin
 } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
-import { useProducts } from '../composables/useProducts'
 
 const router = useRouter()
 const { isAuthenticated } = useAuth()
-const { getProducts, loading } = useProducts()
 
 const searchQuery = ref('')
-const featuredProducts = ref<any[]>([])
+const loading = ref(true)
+const allListings = ref<any[]>([])
+const activeFilter = ref('all')
+
+const filterTabs = [
+  { id: 'all', name: 'Todos', icon: Star },
+  { id: 'products', name: 'Productos', icon: Package },
+  { id: 'properties', name: 'Propiedades', icon: Home },
+  { id: 'services', name: 'Servicios', icon: Wrench }
+]
+
+const filteredListings = computed(() => {
+  if (activeFilter.value === 'all') {
+    return allListings.value
+  }
+  return allListings.value.filter(listing => listing.type === activeFilter.value.slice(0, -1))
+})
 
 const formatPrice = (price: number): string => {
+  if (!price) return '0'
   return new Intl.NumberFormat('es-CO').format(price)
 }
 
-interface Category {
-  name: string
-  icon: any
-  count?: number
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now.getTime() - date.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 1) return 'Hoy'
+  if (diffDays === 2) return 'Ayer'
+  if (diffDays <= 7) return `Hace ${diffDays} días`
+  
+  return date.toLocaleDateString('es-CO', { 
+    day: 'numeric', 
+    month: 'short' 
+  })
 }
 
-const categories = ref<Category[]>([
-  { name: 'Electrónicos', icon: Smartphone, count: 0 },
-  { name: 'Vehículos', icon: Car, count: 0 },
-  { name: 'Hogar y Jardín', icon: Home, count: 0 },
-  { name: 'Moda y Belleza', icon: Shirt, count: 0 },
-  { name: 'Deportes', icon: Dumbbell, count: 0 },
-  { name: 'Libros y Música', icon: Book, count: 0 },
-  { name: 'Inmuebles', icon: Building, count: 0 },
-  { name: 'Servicios', icon: Wrench, count: 0 }
-])
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case 'product': return Package
+    case 'property': return Home
+    case 'service': return Wrench
+    default: return Package
+  }
+}
+
+const getTypeBadgeClass = (type: string) => {
+  switch (type) {
+    case 'product': return 'bg-blue-500'
+    case 'property': return 'bg-green-500'
+    case 'service': return 'bg-purple-500'
+    default: return 'bg-gray-500'
+  }
+}
+
+const getTypeLabel = (type: string) => {
+  switch (type) {
+    case 'product': return 'Producto'
+    case 'property': return 'Propiedad'
+    case 'service': return 'Servicio'
+    default: return 'Producto'
+  }
+}
+
+const navigateToListing = (listing: any) => {
+  switch (listing.type) {
+    case 'product':
+      router.push(`/product/${listing.id}`)
+      break
+    case 'property':
+      router.push(`/property/${listing.id}`)
+      break
+    case 'service':
+      router.push(`/service/${listing.id}`)
+      break
+  }
+}
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
@@ -387,44 +443,82 @@ const handleSearch = () => {
   }
 }
 
-const navigateToCategory = (category: string) => {
-  router.push({ name: 'products', query: { category } })
-}
-
-const loadCategoryCounts = async () => {
+const loadRecentListings = async () => {
   try {
-    const { data, error } = await supabase
+    loading.value = true
+    
+    // Cargar productos
+    const { data: products, error: productsError } = await supabase
       .from('products')
-      .select('category')
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          avatar_url,
+          badge
+        )
+      `)
       .eq('status', 'active')
-      .not('category', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(20)
 
-    if (error) throw error
+    if (productsError) throw productsError
 
-    // Contar productos por categoría
-    const counts: Record<string, number> = {}
-    data?.forEach((item: any) => {
-      counts[item.category] = (counts[item.category] || 0) + 1
-    })
+    // Cargar propiedades
+    const { data: properties, error: propertiesError } = await supabase
+      .from('properties')
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          avatar_url,
+          badge
+        )
+      `)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(20)
 
-    // Actualizar los contadores en las categorías, filtrar las que tienen 0 y ordenar de mayor a menor
-    categories.value = categories.value
-      .map(cat => ({
-        ...cat,
-        count: counts[cat.name] || 0
-      }))
-      .filter(cat => cat.count > 0) // Solo mantener categorías con al menos un producto
-      .sort((a, b) => b.count - a.count)
+    if (propertiesError) throw propertiesError
+
+    // Cargar servicios
+    const { data: services, error: servicesError } = await supabase
+      .from('services')
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          avatar_url,
+          badge
+        )
+      `)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    if (servicesError) throw servicesError
+
+    // Combinar y marcar el tipo
+    const combinedListings = [
+      ...(products || []).map(item => ({ ...item, type: 'product' })),
+      ...(properties || []).map(item => ({ ...item, type: 'property' })),
+      ...(services || []).map(item => ({ ...item, type: 'service' }))
+    ]
+
+    // Ordenar por fecha de creación (más recientes primero)
+    combinedListings.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+    // Tomar solo los primeros 24 elementos
+    allListings.value = combinedListings.slice(0, 24)
+    
   } catch (error) {
-    console.error('Error al cargar el conteo de productos por categoría:', error)
+    console.error('Error loading recent listings:', error)
+  } finally {
+    loading.value = false
   }
 }
 
-onMounted(async () => {
-  const [products] = await Promise.all([
-    getProducts(),
-    loadCategoryCounts()
-  ])
-  featuredProducts.value = products?.slice(0, 8) || []
+onMounted(() => {
+  loadRecentListings()
 })
 </script>
