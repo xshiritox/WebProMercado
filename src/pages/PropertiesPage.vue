@@ -358,6 +358,7 @@ const colombianCities = [
   'Montería',
   'Sincelejo',
   'Popayán',
+  'Granada',
   'Tunja',
   'Riohacha',
   'Quibdó',
