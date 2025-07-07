@@ -171,20 +171,20 @@
           <div
             v-for="property in filteredProperties" 
             :key="property.id" 
-            class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+            class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
             @click="viewProperty(property.id)"
           >
             <!-- Property Image -->
-            <div class="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
+            <div class="relative h-48 bg-gray-100 overflow-hidden">
               <div v-if="!property.images?.[0]" class="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-                <IconImageOff class="w-full h-48 object-cover bg-gray-100" />
+                <IconImageOff class="w-12 h-12 mb-2" />
                 <span class="text-sm">Sin imagen disponible</span>
               </div>
               <img
                 v-else
                 :src="property.images[0]"
                 :alt="property.title"
-                class="w-full h-full object-contain bg-white p-2"
+                class="w-full h-full object-cover"
               />
               <div class="absolute top-2 left-2">
                 <span
