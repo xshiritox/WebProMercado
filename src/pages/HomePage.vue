@@ -155,32 +155,6 @@
             </div>
           </div>
         </div>
-
-        <div class="text-center mt-12">
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <router-link
-              to="/products"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-            >
-              <Package class="w-5 h-5" />
-              Ver todos los productos
-            </router-link>
-            <router-link
-              to="/properties"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-            >
-              <Home class="w-5 h-5" />
-              Ver todas las propiedades
-            </router-link>
-            <router-link
-              to="/services"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 rounded-xl font-medium transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-            >
-              <Wrench class="w-5 h-5" />
-              Ver todos los servicios
-            </router-link>
-          </div>
-        </div>
       </div>
     </section>
 

@@ -6,7 +6,7 @@
         <div class="flex items-center">
           <router-link to="/" class="flex items-center space-x-2 group">
             <img src="/Logo.webp" alt="Kroma Logo" class="h-10 w-auto transition-transform duration-300 group-hover:scale-105 rounded-lg">
-            <span class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">Kroma</span>
+            <span class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">Kroma Store</span>
           </router-link>
         </div>
 

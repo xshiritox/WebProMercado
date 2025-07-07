@@ -6,7 +6,7 @@
         <div class="col-span-1 md:col-span-2">
           <div class="flex items-center space-x-2 mb-4">
             <img src="/Logo.webp" alt="Kroma Logo" class="h-8 w-auto transition-transform duration-300 hover:scale-105 rounded-lg">
-            <span class="text-xl font-bold">Kroma</span>
+            <span class="text-xl font-bold">Kroma Store</span>
           </div>
           <p class="text-gray-300">
             La plataforma número uno en Colombia para la compra y venta de productos, 
