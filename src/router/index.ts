@@ -157,7 +157,11 @@ export const routes: RouteRecordRaw[] = [
     path: '/change-password',
     name: 'change-password',
     component: ChangePasswordForm,
-    // El componente manejará el hash directamente
+    props: (route) => ({ 
+      access_token: route.query.access_token,
+      type: route.query.type,
+      next: route.query.next
+    })
   },
   {
     path: '/how-it-works',
