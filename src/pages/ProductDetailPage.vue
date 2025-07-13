@@ -53,9 +53,11 @@
             <img
               v-if="currentImage || product.images?.[0]"
               :src="currentImage || product.images[0]"
-              :alt="product.title"
+              :alt="`${product.title} - ${product.condition} en venta en Kroma Store`"
+              :title="`${product.title} - ${product.condition === 'nuevo' ? 'Nuevo' : 'Usado'} en Kroma Store`"
               class="w-full h-full object-contain bg-white p-4"
               style="max-height: 24rem;"
+              loading="lazy"
             />
             <div v-else class="w-full h-96 bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400 p-4">
               <ImageOff class="w-16 h-16 mb-4" />
@@ -74,7 +76,8 @@
           >
             <img
               :src="image"
-              :alt="`${product.title} - imagen ${index + 2}`"
+              :alt="`${product.title} - vista ${index + 2} de ${product.images.length} - ${product.condition} en Kroma Store`"
+              :title="`${product.title} - vista ${index + 2}`"
               class="w-full h-full object-contain p-1 bg-white"
             />
           </div>

@@ -105,7 +105,7 @@
               <img 
                 v-if="listing.images?.[0]"
                 :src="listing.images[0]" 
-                :alt="listing.title"
+                :alt="`${listing.title} - ${listing.type === 'product' ? 'Producto' : listing.type === 'property' ? 'Propiedad' : 'Servicio'} en venta en Kroma Store`"
                 class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               >

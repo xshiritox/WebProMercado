@@ -9,8 +9,9 @@
       <img 
         v-else 
         :src="product.images[0]" 
-        :alt="product.title" 
+        :alt="`${product.title} - ${product.condition} en Kroma Store`" 
         class="w-full h-full object-cover"
+        :title="`${product.title} - ${product.condition === 'nuevo' ? 'Nuevo' : 'Usado'} en Kroma Store`"
       >
       <!-- Favorite Button -->
       <div class="absolute top-2 right-2 bg-white rounded-full p-1 shadow cursor-pointer hover:bg-gray-100" @click.stop="toggleFavorite">
@@ -228,8 +229,11 @@ const formatDate = (date: string) => {
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
+  display: -webkit-flex;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
